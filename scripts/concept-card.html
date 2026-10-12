@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        background: #241c16;
+        color: #f6efe2;
+        font-family: "Droid Sans Fallback", "Hiragino Sans", sans-serif;
+      }
+      .wrap {
+        box-sizing: border-box;
+        height: 1920px;
+        padding: 88px 64px 72px;
+        display: flex;
+        flex-direction: column;
+      }
+      .name {
+        margin: 0;
+        font-size: 40px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+      }
+      h1 {
+        margin: 28px 0 12px;
+        font-size: 108px;
+        line-height: 1.12;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+      }
+      .lead {
+        margin: 0;
+        font-size: 40px;
+        line-height: 1.5;
+        font-weight: 700;
+      }
+      .signs {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+        margin-top: 56px;
+      }
+      .sign {
+        position: relative;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 40px 40px 44px 64px;
+        border-radius: 36px;
+        background: #f6efe2;
+        color: #241c16;
+        box-shadow: 0 12px 0 #1a140f;
+      }
+      .sign i {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 22px;
+        border-radius: 36px 0 0 36px;
+      }
+      .fuji i {
+        background: #e25b2a;
+      }
+      .mizo i {
+        background: #1f4b6e;
+      }
+      .sign b {
+        font-size: 72px;
+        letter-spacing: -0.04em;
+        line-height: 1.1;
+      }
+      .sign span {
+        margin-top: 10px;
+        font-size: 34px;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <p class="name">BusNow!!</p>
+      <h1>停留所の看板</h1>
+      <p class="lead">富士見台と溝の口のあいだだけを映す。</p>
+      <div class="signs">
+        <div class="sign fuji">
+          <i></i>
+          <b>富士見台</b>
+          <span>途中の停留所。あと何分。</span>
+        </div>
+        <div class="sign mizo">
+          <i></i>
+          <b>溝の口駅南口</b>
+          <span>始発の停留所。次の3本。</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

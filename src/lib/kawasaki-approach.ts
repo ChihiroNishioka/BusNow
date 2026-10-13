@@ -76,11 +76,7 @@ export function parseKawasakiApproach(html: string): {
   };
 }
 
-function routeFromBox(
-  $: cheerio.CheerioAPI,
-  box: cheerio.Cheerio<cheerio.Element>,
-  text: string,
-): string {
+function routeFromBox($: cheerio.CheerioAPI, box: ReturnType<typeof $>, text: string): string {
   let route = "";
   box.find("font").each((_, element) => {
     if (route) return;

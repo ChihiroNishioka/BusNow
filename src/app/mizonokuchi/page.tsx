@@ -4,6 +4,8 @@ import { KAWASAKI_TIMETABLE_URL } from "@/lib/kawasaki-timetable";
 import { TOKYU_TIMETABLE_URL } from "@/lib/tokyu-timetable";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
 export const metadata = { title: "溝の口駅南口発" };
 
 export default async function MizonokuchiPage() {

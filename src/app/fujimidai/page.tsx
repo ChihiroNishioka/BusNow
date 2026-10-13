@@ -4,6 +4,8 @@ import { kawasakiApproachUrl } from "@/lib/kawasaki-approach";
 import { TOKYU_FUJIMIDAI_URL } from "@/lib/tokyu-approach";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
 export const metadata = { title: "富士見台発" };
 
 export default async function FujimidaiPage() {

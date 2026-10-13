@@ -41,22 +41,36 @@ npm run dev
 
 ## ホーム画面に置く
 
-このアプリは PWA です。名前は **BusNow!!** です。
+このアプリは PWA です。名前は **BusNow!!** です。公開した HTTPS の URL を iPhone の Safari で開き、共有ボタンから「ホーム画面に追加」します。アイコンは BusNow!!、開くと Safari の枠なし（standalone）です。ステータスバーは看板のアスファルト色（`#241c16`）に合わせ、ノッチとホームインジケータのぶんは safe area で空けています。
 
-- iPhone: Safari で開いて、共有ボタンから「ホーム画面に追加」。
-- Android: Chrome の「ホーム画面に追加」または「インストール」。
+一度オンラインで開くと、圏外でホーム画面から開いたときは「いまはネットにつながっていません」と出ます。接近と時刻はライブなので、オフラインのあいだはバスの本数を出しません。
 
 トップの看板にはアプリ名を載せていません。ホーム画面のアイコンと、ブラウザのタイトルが BusNow!! です。
 
 ## 公開するとき
 
-Next.js なので Vercel にそのまま置けます。サーバーから次のホストへ外向きの HTTPS が必要です。
+無料で置くなら **Vercel** です。GitHub の <https://github.com/ChihiroNishioka/BusNow> を Import するだけで、設定はリポジトリ側に入っています。
 
-- `tokyu.bus-location.jp`
-- `kcbn.bus-navigation.jp`
-- `transfer.navitime.biz`
+| 項目 | 選ぶもの |
+| --- | --- |
+| Framework Preset | Next.js（自動） |
+| Root Directory | `./` |
+| Build / Install | 空欄のまま（`next build` / `npm install`） |
+| Node.js | 22.x（`package.json` の `engines` と `.node-version`） |
+| Environment Variables | なし |
+| Function Region | Tokyo（`hnd1`）。`vercel.json` の `regions` がこれです。Hobby は1リージョンだけです |
 
-`transfer.navitime.biz` が 403 を返しても、東急バスの時刻は同梱のスナップショットで出ます。接近情報は毎回ライブです。スナップショットだけでは接近は出せません。
+時刻の計算は `Asia/Tokyo` 固定です。サーバーのタイムゾーンが UTC でも、平日・土曜・休日と「HH:MM時点」は日本時間です。環境変数 `TZ` は要りません。
+
+サーバーから次のホストへ外向きの HTTPS が必要です。
+
+- `tokyu.bus-location.jp`（富士見台の接近）
+- `kcbn.bus-navigation.jp`（川崎市バスの接近と時刻表）
+- `transfer.navitime.biz`（東急バスの時刻表）
+
+`transfer.navitime.biz` は CloudFront で、Vercel のようなデータセンターの IP を 403 にすることが多いです。そのときは同梱のスナップショット（2025年7月1日改定）を出し、画面にその旨を書きます。接近情報はスナップショットでは出せません。`hnd1` は東京なので往復は短くなりますが、IP の拒否は避けられません。Cloudflare Pages は Node の取得処理と合いません。
+
+取得は Node.js のサーバー関数です（Edge ではありません）。1回の上限は 60 秒で、各公式ページは 15 秒で打ち切ります。Hobby の関数上限（300 秒）の内側です。
 
 ```bash
 npm run build

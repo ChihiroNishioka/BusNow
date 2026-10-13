@@ -198,12 +198,15 @@ a.enamel-mizo::before {
 }
 
 .sheet {
-  min-height: calc(100dvh - 24px);
-  margin: 12px;
-  padding:
-    max(18px, env(safe-area-inset-top))
-    22px
-    max(28px, env(safe-area-inset-bottom));
+  min-height: calc(
+    100dvh - max(12px, env(safe-area-inset-top)) - max(12px, env(safe-area-inset-bottom))
+  );
+  margin:
+    max(12px, env(safe-area-inset-top))
+    max(12px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom))
+    max(12px, env(safe-area-inset-left));
+  padding: 18px 22px 28px;
   border-radius: 28px;
   background: #f6efe2;
   box-shadow: 0 12px 0 #1a140f;

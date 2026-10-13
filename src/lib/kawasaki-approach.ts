@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio";
-import type { ApproachBus, SourceStatus } from "./types";
+import type { ApproachSighting, SourceStatus } from "./types";
 import { fetchText } from "./http";
 import { compactRoute, htmlToText, normalizeDigits } from "./text";
 
@@ -24,7 +24,7 @@ export function kawasakiApproachUrl(): string {
 }
 
 export function parseKawasakiApproach(html: string): {
-  buses: ApproachBus[];
+  buses: ApproachSighting[];
   updatedAt: string | null;
   message: string | null;
   pageError: string | null;
@@ -40,7 +40,7 @@ export function parseKawasakiApproach(html: string): {
   const $ = cheerio.load(html);
   const updated = html.match(/fa-clock-o"\s*>\s*<\/i>\s*(\d{1,2}:\d{2})/);
   const notice = normalizeDigits($("#errInfo").text());
-  const buses: ApproachBus[] = [];
+  const buses: ApproachSighting[] = [];
 
   $("#buslist .route_box").each((index, element) => {
     const box = $(element);
@@ -101,7 +101,7 @@ function routeFromBox(
 }
 
 export async function loadKawasakiApproach(): Promise<{
-  buses: ApproachBus[];
+  buses: ApproachSighting[];
   source: SourceStatus;
 }> {
   try {

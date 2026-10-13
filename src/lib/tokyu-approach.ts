@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio";
-import type { ApproachBus, SourceStatus } from "./types";
+import type { ApproachSighting, SourceStatus } from "./types";
 import { fetchText } from "./http";
 import { compactRoute, htmlToText, normalizeDigits } from "./text";
 
@@ -13,7 +13,7 @@ export const TOKYU_FUJIMIDAI_URL =
   "https://tokyu.bus-location.jp/blsys/navi?VID=rsi&EID=nt&RAMK=61&SKF=2994&SKS=2991&DOF=4&DOS=1&SSC=2&DIF=true&SCT=1&ASMK=0&DPMK=0&DSMK=0&RMK=0&TOP=-1&FASN=0&FDSN=0";
 
 export function parseTokyuApproach(html: string): {
-  buses: ApproachBus[];
+  buses: ApproachSighting[];
   updatedAt: string | null;
   pageError: string | null;
 } {
@@ -35,7 +35,7 @@ export function parseTokyuApproach(html: string): {
   const $ = cheerio.load(html);
   const plain = htmlToText(html);
   const updated = plain.match(/(\d{1,2}:\d{2})\s*時点/);
-  const buses: ApproachBus[] = [];
+  const buses: ApproachSighting[] = [];
 
   $("td.businfo, td.colmsg").each((index, element) => {
     const fragment = $(element).html() ?? "";
@@ -53,8 +53,8 @@ export function parseTokyuApproach(html: string): {
   };
 }
 
-function busesFromTokyuText(text: string): ApproachBus[] {
-  const found: ApproachBus[] = [];
+function busesFromTokyuText(text: string): ApproachSighting[] {
+  const found: ApproachSighting[] = [];
   const wait = /溝\s*([0-9]{2})([\s\S]{0,40}?)([0-9]{1,2})\s*分待ち/g;
   for (const match of text.matchAll(wait)) {
     found.push(
@@ -80,7 +80,7 @@ function bus(
   destination: string,
   minutes: number,
   status: string,
-): ApproachBus {
+): ApproachSighting {
   return {
     id: `tokyu-${compactRoute(route)}-${minutes}-${status}`,
     operator: "東急バス",
@@ -91,7 +91,7 @@ function bus(
   };
 }
 
-function dedupe(buses: ApproachBus[]): ApproachBus[] {
+function dedupe(buses: ApproachSighting[]): ApproachSighting[] {
   const seen = new Set<string>();
   return buses.filter((item) => {
     if (seen.has(item.id)) return false;
@@ -101,7 +101,7 @@ function dedupe(buses: ApproachBus[]): ApproachBus[] {
 }
 
 export async function loadTokyuApproach(): Promise<{
-  buses: ApproachBus[];
+  buses: ApproachSighting[];
   source: SourceStatus;
 }> {
   try {

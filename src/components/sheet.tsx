@@ -45,18 +45,25 @@ export function Sheet({
   );
 }
 
-export function SourceNotes({ sources }: { sources: SourceStatus[] }) {
+export function SourceNotes({
+  sources,
+  showClock = true,
+}: {
+  sources: SourceStatus[];
+  showClock?: boolean;
+}) {
   return (
     <div className="sources">
       {sources.map((source) => {
-        if (source.ok && !source.message && !source.updatedAt) return null;
+        const clock = showClock ? source.updatedAt : null;
+        if (source.ok && !source.message && !clock) return null;
         return (
           <p key={source.operator} className={source.ok ? "note" : "note warn"}>
             <span className={`chip ${source.operator === "東急バス" ? "op-tokyu" : "op-kawasaki"}`}>
               {source.operator}
             </span>
             {source.ok ? source.message : source.message ?? "うまく取れませんでした"}
-            {source.updatedAt ? ` · ${source.updatedAt}時点` : ""}
+            {clock ? ` · ${clock}時点` : ""}
           </p>
         );
       })}

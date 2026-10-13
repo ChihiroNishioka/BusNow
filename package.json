@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start -H 0.0.0.0 -p 43123",
     "lint": "eslint",
-    "test": "tsx --test src/lib/parse.test.ts"
+    "test": "tsx --test src/lib/parse.test.ts src/lib/countdown.test.ts"
   },
   "dependencies": {
     "cheerio": "^1.2.0",

@@ -4,16 +4,27 @@ export type SourceStatus = {
   operator: Operator;
   ok: boolean;
   message: string | null;
+  /** Operator clock as HH:MM, when the page printed one. */
   updatedAt: string | null;
+  /** Instant that clock (or our fetch) refers to. */
+  observedAt?: string | null;
 };
 
-export type ApproachBus = {
+/** A bus as parsed, before it is anchored to a clock. */
+export type ApproachSighting = {
   id: string;
   operator: Operator;
   route: string;
   destination: string;
   minutes: number | null;
   status: string;
+};
+
+export type ApproachBus = ApproachSighting & {
+  /** When `minutes` was true: the source clock, or the fetch time. */
+  observedAt: string;
+  /** observedAt plus `minutes`. Null when the page gave no minute count. */
+  arrivesAt: string | null;
 };
 
 export type ApproachPayload = {

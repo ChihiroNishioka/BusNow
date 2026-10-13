@@ -1,3 +1,4 @@
+import { observedInstant, stampSightings } from "./countdown";
 import { loadKawasakiApproach } from "./kawasaki-approach";
 import { loadKawasakiDepartures } from "./kawasaki-timetable";
 import { loadTokyuApproach } from "./tokyu-approach";
@@ -21,19 +22,27 @@ export async function loadApproach(now = new Date()): Promise<ApproachPayload> {
     loadTokyuApproach(),
     loadKawasakiApproach(),
   ]);
-  const buses = [...tokyu.buses, ...kawasaki.buses].sort(byArrival);
+  const tokyuAt = observedInstant(now, tokyu.source.updatedAt);
+  const kawasakiAt = observedInstant(now, kawasaki.source.updatedAt);
+  const buses = [
+    ...stampSightings(tokyu.buses, tokyuAt),
+    ...stampSightings(kawasaki.buses, kawasakiAt),
+  ].sort(byArrival);
   return {
     stop: "富士見台",
     toward: "溝の口",
     fetchedAt: now.toISOString(),
     buses,
-    sources: [tokyu.source, kawasaki.source],
+    sources: [
+      { ...tokyu.source, observedAt: tokyuAt.toISOString() },
+      { ...kawasaki.source, observedAt: kawasakiAt.toISOString() },
+    ],
   };
 }
 
 function byArrival(a: ApproachBus, b: ApproachBus): number {
-  const am = a.minutes ?? 10_000;
-  const bm = b.minutes ?? 10_000;
+  const am = a.arrivesAt ? new Date(a.arrivesAt).getTime() : Number.POSITIVE_INFINITY;
+  const bm = b.arrivesAt ? new Date(b.arrivesAt).getTime() : Number.POSITIVE_INFINITY;
   return am - bm || a.route.localeCompare(b.route, "ja");
 }
 

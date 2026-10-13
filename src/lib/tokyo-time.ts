@@ -71,6 +71,12 @@ export function formatTokyoClock(date: Date): string {
   return `${parts.hour}:${String(parts.minute).padStart(2, "0")}`;
 }
 
+/** A Tokyo wall-clock time on `ymd`. Japan has no daylight saving. */
+export function tokyoDateAt(ymd: string, hour: number, minute: number): Date {
+  const [year, month, day] = ymd.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day, hour - 9, minute, 0, 0));
+}
+
 function nthMonday(year: number, month: number, n: number): number {
   const first = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
   const untilMonday = (1 - first + 7) % 7;

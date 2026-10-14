@@ -4,13 +4,13 @@ import { fetchText } from "./http";
 import { compactRoute, htmlToText, normalizeDigits } from "./text";
 
 /**
- * 東急バスナビ PC 接近情報。
- * 溝22（RAMK=61）富士見台（SKF=2994, 表示順4）→ 溝の口駅南口（SKS=2991, 表示順1）。
- * 確認日: 2026-10-12 にこの URL が
- * 「バス接近情報｜富士見台（高津区）→溝の口駅南口」を返した。
+ * 東急バスナビの路線別運行情報（溝22、RAMK=61）。
+ * 停留所の接近ページは富士見台の手前6停留所までしか出さない。
+ * 子母口住宅前や鷹巣橋の (折)溝口南行はそこに入らないので、路線図の方を読む。
+ * 溝の口を上、蟹ヶ谷を下に描き、左（上向き）が溝口南行。
  */
 export const TOKYU_FUJIMIDAI_URL =
-  "https://tokyu.bus-location.jp/blsys/navi?VID=rsi&EID=nt&RAMK=61&SKF=2994&SKS=2991&DOF=4&DOS=1&SSC=2&DIF=true&SCT=1&ASMK=0&DPMK=0&DSMK=0&RMK=0&TOP=-1&FASN=0&FDSN=0";
+  "https://tokyu.bus-location.jp/blsys/navi?VID=rsc&EID=nt&RAMK=61&SCT=2&DSMK=2994&DSN=%E5%AF%8C%E5%A3%AB%E8%A6%8B%E5%8F%B0%EF%BC%88%E9%AB%98%E6%B4%A5%E5%8C%BA%EF%BC%89&ASMK=2991&ASN=%E6%BA%9D%E3%81%AE%E5%8F%A3%E9%A7%85%E5%8D%97%E5%8F%A3&FDSN=0&FASN=0&CTYP=0";
 
 export function parseTokyuApproach(html: string): {
   buses: ApproachSighting[];
@@ -37,20 +37,82 @@ export function parseTokyuApproach(html: string): {
   const updated = plain.match(/(\d{1,2}:\d{2})\s*時点/);
   const buses: ApproachSighting[] = [];
 
-  $("td.businfo, td.colmsg").each((index, element) => {
-    const fragment = $(element).html() ?? "";
-    const text = normalizeDigits(htmlToText(fragment));
-    if (!text || text === " ") return;
-    for (const item of busesFromTokyuText(text)) {
-      buses.push({ ...item, id: `${item.id}-${index}-${buses.length}` });
+  if ($("table.routeListTbl").length > 0) {
+    for (const item of busesOnRouteDiagram($)) {
+      buses.push({ ...item, id: `${item.id}-${buses.length}` });
     }
-  });
+  } else if ($("#selectStop").length > 0) {
+    for (const item of busesOnPhoneDiagram($)) {
+      buses.push({ ...item, id: `${item.id}-${buses.length}` });
+    }
+  } else {
+    $("td.businfo, td.colmsg").each((index, element) => {
+      const fragment = $(element).html() ?? "";
+      const text = normalizeDigits(htmlToText(fragment));
+      if (!text || text === " ") return;
+      for (const item of busesFromTokyuText(text)) {
+        buses.push({ ...item, id: `${item.id}-${index}-${buses.length}` });
+      }
+    });
+  }
 
   return {
     buses: dedupe(buses),
     updatedAt: updated?.[1] ?? null,
     pageError: null,
   };
+}
+
+/** PC 路線図。富士見台より下（まだ着いていない側）の左列だけが溝の口方面。 */
+function busesOnRouteDiagram($: cheerio.CheerioAPI): ApproachSighting[] {
+  return busesAfterFujimidai($("table.routeListTbl tr").toArray().map((row) => $(row)), (row) =>
+    normalizeDigits(row.find("td.balloonL").text()),
+  );
+}
+
+/** スマホ路線図。label-u が溝の口方面。 */
+function busesOnPhoneDiagram($: cheerio.CheerioAPI): ApproachSighting[] {
+  return busesAfterFujimidai($("tr").toArray().map((row) => $(row)), (row) =>
+    normalizeDigits(row.find(".label-u").text()),
+  );
+}
+
+function busesAfterFujimidai(
+  rows: Array<ReturnType<cheerio.CheerioAPI>>,
+  textOf: (row: ReturnType<cheerio.CheerioAPI>) => string,
+): ApproachSighting[] {
+  let sawFujimidai = false;
+  const found: ApproachSighting[] = [];
+  for (const row of rows) {
+    const stop = normalizeDigits(row.find(".stopName, .stopnm").text()).replace(/\s/g, "");
+    if (/^富士見台(?:[（(]|$)/.test(stop) || row.find("#selectStop").length > 0) {
+      sawFujimidai = true;
+      continue;
+    }
+    const text = textOf(row);
+    if (!text) continue;
+    if (sawFujimidai) {
+      const item = busTowardMizonokuchi(text);
+      if (item) found.push(item);
+    }
+  }
+  if (sawFujimidai) return found;
+  return rows.flatMap((row) => {
+    const item = busTowardMizonokuchi(textOf(row));
+    return item ? [item] : [];
+  });
+}
+
+/** 溝口南行と (折)溝口南行。蟹ヶ谷行は反対方向なので捨てる。 */
+function busTowardMizonokuchi(text: string): ApproachSighting | null {
+  const match = text.match(
+    /((?:\(折\)|（折）)\s*)?(溝口\S{0,8}行)\s*(?:(\d{1,2})\s*分待ち|まもなく)/,
+  );
+  if (!match) return null;
+  const destination = `${match[1] ? "(折)" : ""}${match[2]}`;
+  const soon = match[3] == null;
+  const minutes = soon ? 0 : Number(match[3]);
+  return bus("溝22", destination, minutes, soon ? "まもなく" : `${minutes}分待ち`);
 }
 
 function busesFromTokyuText(text: string): ApproachSighting[] {

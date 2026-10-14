@@ -64,6 +64,67 @@ test("tokyu approach text, including an empty cell", () => {
   assert.equal(parsed.buses[1].status, "まもなく");
 });
 
+test("tokyu route diagram keeps every bus still coming to 溝の口, including a short-turn", () => {
+  const html = `
+    <title>東急バスナビ｜ＰＣ版・路線別運行情報(位置情報)｜溝22</title>
+    <div>09:51 <span>時点の情報</span></div>
+    <table class="routeListTbl">
+      <tr>
+        <td class="balloonL"><dd>(折)蟹ヶ谷行 <em></em></dd></td>
+        <td class="balloonR">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="balloonL">&nbsp;</td>
+        <td class="balloonR"><dd>蟹ヶ谷行 <em>02分待ち</em></dd></td>
+      </tr>
+      <tr>
+        <td class="balloonL"><dd>溝口南行 <em>04分待ち</em></dd></td>
+        <td class="stopName">洗足学園前</td>
+      </tr>
+      <tr><td class="stopName">富士見台</td><td class="balloonL">&nbsp;</td></tr>
+      <tr>
+        <td class="balloonL"><dd>溝口南行 <em>06分待ち</em></dd></td>
+        <td class="balloonR">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="balloonL">&nbsp;</td>
+        <td class="balloonR"><dd>蟹ヶ谷行 <em>03分待ち</em></dd></td>
+      </tr>
+      <tr>
+        <td class="balloonL"><dd>(折)溝口南行 <em>15分待ち</em></dd></td>
+      </tr>
+      <tr>
+        <td class="balloonL"><dd>溝口南行 <em>まもなく</em></dd></td>
+      </tr>
+    </table>`;
+  const parsed = parseTokyuApproach(html);
+  assert.equal(parsed.pageError, null);
+  assert.equal(parsed.updatedAt, "09:51");
+  assert.deepEqual(
+    parsed.buses.map((bus) => `${bus.route} ${bus.destination} ${bus.minutes}`),
+    ["溝22 溝口南行 6", "溝22 (折)溝口南行 15", "溝22 溝口南行 0"],
+  );
+  assert.equal(parsed.buses[2].status, "まもなく");
+});
+
+test("tokyu phone diagram uses the upward column after 富士見台", () => {
+  const html = `
+    <title>東急バスナビ｜路線別運行情報(位置情報)｜溝22</title>
+    <div>09:51時点の情報</div>
+    <table>
+      <tr><td><div class="label-u">溝口南行<br /><span class="waittm">01分待ち</span></div></td></tr>
+      <tr class="stopline selectedstopline"><td class="stopnm" id="selectStop"><span>富士見台</span></td></tr>
+      <tr><td><div class="label-u">溝口南行<br /><span class="waittm">06分待ち</span></div></td></tr>
+      <tr><td><div class="label-d">蟹ヶ谷行<br /><span class="waittm">02分待ち</span></div></td></tr>
+      <tr><td><div class="label-u">(折)溝口南行<br /><span class="waittm">15分待ち</span></div></td></tr>
+    </table>`;
+  const parsed = parseTokyuApproach(html);
+  assert.deepEqual(
+    parsed.buses.map((bus) => `${bus.destination} ${bus.minutes}`),
+    ["溝口南行 6", "(折)溝口南行 15"],
+  );
+});
+
 test("kawasaki approach cards and the empty night notice", () => {
   const live = `
     <title>川崎市 市バスナビ</title>

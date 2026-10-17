@@ -40,37 +40,38 @@ public enum ShiftJIS {
         static func load() -> [UInt16: UInt32] {
             guard let url = BundledResources.url("cp932", "bin"),
                   let data = try? Data(contentsOf: url),
-                  data.count >= 8,
-                  data.prefix(4) == Data("CP92".utf8)
+                  data.count >= 8
             else {
                 return [:]
             }
-            let count = Int(readUInt32(data, 4))
+            let bytes = [UInt8](data)
+            guard bytes.starts(with: [0x43, 0x50, 0x39, 0x32]) else { return [:] }
+            let count = Int(readUInt32(bytes, 4))
             var map: [UInt16: UInt32] = [:]
             map.reserveCapacity(count)
             var offset = 8
             for _ in 0..<count {
-                guard offset + 6 <= data.count else { break }
-                let code = readUInt16(data, offset)
-                let scalar = readUInt32(data, offset + 2)
+                guard offset + 6 <= bytes.count else { break }
+                let code = readUInt16(bytes, offset)
+                let scalar = readUInt32(bytes, offset + 2)
                 map[code] = scalar
                 offset += 6
             }
             return map
         }
 
-        static func readUInt16(_ data: Data, _ offset: Int) -> UInt16 {
-            let start = data.startIndex
-            return UInt16(data[data.index(start, offsetBy: offset)])
-                | UInt16(data[data.index(start, offsetBy: offset + 1)]) << 8
+        static func readUInt16(_ bytes: [UInt8], _ offset: Int) -> UInt16 {
+            let low = UInt16(bytes[offset])
+            let high = UInt16(bytes[offset + 1])
+            return low | (high << 8)
         }
 
-        static func readUInt32(_ data: Data, _ offset: Int) -> UInt32 {
-            let start = data.startIndex
-            return UInt32(data[data.index(start, offsetBy: offset)])
-                | UInt32(data[data.index(start, offsetBy: offset + 1)]) << 8
-                | UInt32(data[data.index(start, offsetBy: offset + 2)]) << 16
-                | UInt32(data[data.index(start, offsetBy: offset + 3)]) << 24
+        static func readUInt32(_ bytes: [UInt8], _ offset: Int) -> UInt32 {
+            let b0 = UInt32(bytes[offset])
+            let b1 = UInt32(bytes[offset + 1])
+            let b2 = UInt32(bytes[offset + 2])
+            let b3 = UInt32(bytes[offset + 3])
+            return b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)
         }
     }
 }

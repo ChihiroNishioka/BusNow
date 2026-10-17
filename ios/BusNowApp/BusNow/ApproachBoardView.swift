@@ -77,7 +77,7 @@ struct ApproachBoardView: View {
             } else {
                 VStack(spacing: 0) {
                     ForEach(presented.rows, id: \.bus.id) { row in
-                        busRow(row, reduceMotion: reduceMotion, numberSize: numberSize)
+                        busRow(row: row, reduceMotion: reduceMotion, numberSize: numberSize)
                     }
                 }
             }

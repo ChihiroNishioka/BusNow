@@ -56,7 +56,7 @@ struct DepartureBoardView: View {
                 } else {
                     VStack(spacing: 0) {
                         ForEach(presented.departures) { departure in
-                            departureRow(departure, timeSize: timeSize)
+                            departureRow(departure: departure, timeSize: timeSize)
                         }
                     }
                 }

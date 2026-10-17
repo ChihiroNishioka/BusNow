@@ -14,7 +14,7 @@ xcodebuild build \
   -scheme BusNow \
   -destination 'platform=iOS Simulator,name=iPhone 16' \
   -derivedDataPath ios/BusNowApp/DerivedData \
-  CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
+  CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 
 APP="$(find ios/BusNowApp/DerivedData -path '*iphonesimulator*' -name BusNow.app -type d | head -1)"
 UDID="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone 16 / { print $2; exit }')"

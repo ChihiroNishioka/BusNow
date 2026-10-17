@@ -50,7 +50,7 @@ xcodebuild test \
   -project ios/BusNowApp/BusNow.xcodeproj \
   -scheme BusNow \
   -destination 'platform=iOS Simulator,name=iPhone 16' \
-  CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO
+  CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 ```
 
 GitHub Actions（`.github/workflows/ios.yml`）は ubuntu-24.04 で `swift test`、macos-15 でシミュレータの `xcodebuild test` とスクリーンショットを取ります。画像はアーティファクト `ios-screenshots` です。このリポジトリを編集した Linux 環境ではシミュレータを起動できないため、`docs/screenshots/` には画像を置いていません。

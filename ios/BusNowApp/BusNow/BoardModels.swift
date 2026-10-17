@@ -132,7 +132,9 @@ final class ApproachModel {
             let epoch = generation
             let wait = BoardClock.waitAfterPoll(started: started, finished: services.clock.now())
             if wait <= 0 { return }
-            let sleeper = Task { try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000)) }
+            let sleeper = Task<Void, Never> {
+                try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
+            }
             waitTask = sleeper
             await sleeper.value
             waitTask = nil

@@ -48,7 +48,7 @@ struct ApproachBoardView: View {
                         .foregroundStyle(Theme.warn)
                 }
                 Button(BoardCopy.retry) {
-                    Task { await model.reload(useNetwork: true) }
+                    model.refresh()
                 }
                 .font(Theme.maru(17, relativeTo: .body))
                 .foregroundStyle(Theme.cream)
@@ -60,32 +60,34 @@ struct ApproachBoardView: View {
             .padding(.top, 28)
         } else if let payload = model.payload {
             let presented = BoardPresentation.approach(payload, now: model.now)
-            if let hero = presented.hero {
+            if !presented.rows.isEmpty {
+                VStack(spacing: 0) {
+                    ForEach(presented.rows, id: \.bus.id) { row in
+                        busRow(row: row, reduceMotion: reduceMotion, numberSize: numberSize)
+                    }
+                }
+            } else if let hero = presented.hero {
                 Text(hero)
                     .font(Theme.maru(32, relativeTo: .title))
                     .foregroundStyle(Theme.ink)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 24)
                     .accessibilityIdentifier("board.hero")
-            } else if presented.rows.isEmpty, let freshness = presented.freshnessNote {
+            } else if let freshness = presented.freshnessNote {
                 Text(freshness)
                     .font(Theme.maru(28, relativeTo: .title2))
                     .foregroundStyle(Theme.ink)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 24)
                     .accessibilityIdentifier("board.hero")
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(presented.rows, id: \.bus.id) { row in
-                        busRow(row: row, reduceMotion: reduceMotion, numberSize: numberSize)
-                    }
-                }
             }
-            if let freshness = presented.freshnessNote, !presented.rows.isEmpty {
+            if let freshness = presented.freshnessNote, presented.hero != nil || !presented.rows.isEmpty {
                 Text(freshness)
                     .font(Theme.maru(15, relativeTo: .footnote))
                     .foregroundStyle(Theme.quiet)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 14)
+                    .accessibilityIdentifier("board.freshness")
             }
             if let refreshError = model.refreshError {
                 Text(refreshError)

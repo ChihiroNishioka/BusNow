@@ -132,6 +132,18 @@ final class BusNowUITests: XCTestCase {
             swipes += 1
         }
         XCTAssertTrue(mizo.isHittable)
+        fuji.tap()
+        XCTAssertTrue(app.staticTexts["富士見台発"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.staticTexts["まもなく"].waitForExistence(timeout: 8))
+        app.buttons["board.back"].tap()
+        XCTAssertTrue(mizo.waitForExistence(timeout: 8))
+        var backSwipes = 0
+        while !mizo.isHittable && backSwipes < 4 {
+            app.swipeUp()
+            backSwipes += 1
+        }
+        mizo.tap()
+        XCTAssertTrue(app.staticTexts["10:41"].waitForExistence(timeout: 8))
         attach(app, name: "home-ax5")
     }
 

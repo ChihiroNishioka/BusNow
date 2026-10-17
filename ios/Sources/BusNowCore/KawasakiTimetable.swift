@@ -57,12 +57,14 @@ public enum KawasakiTimetable {
             return hit
         }
         do {
-            let trips = try await fetch(client, kinds: kinds)
-            let value = KawasakiDepartures(trips: trips, note: nil)
+            let fetched = try await fetch(client, kinds: kinds)
+            if Task.isCancelled { throw CancellationError() }
+            let merged = store.mergeKawasaki(fetched.trips, at: now)
+            let value = KawasakiDepartures(trips: merged, note: fetched.note)
             cache.setKawasaki(key: key, value: value, at: now)
-            store.saveKawasaki(trips, at: now)
             return value
         } catch {
+            if BoardClock.isCancellation(error) { throw error }
             if let saved = store.loadKawasaki() {
                 let value = KawasakiDepartures(trips: saved.trips, note: BoardCopy.savedTimetable(on: saved.savedAt))
                 cache.setKawasaki(key: key, value: value, at: now)
@@ -72,7 +74,7 @@ public enum KawasakiTimetable {
         }
     }
 
-    private static func fetch(_ client: HTTPClient, kinds: [DayKind]) async throws -> [ScheduledTrip] {
+    private static func fetch(_ client: HTTPClient, kinds: [DayKind]) async throws -> FetchedTimetable {
         let index = try await HTTP.fetchFormJSON(
             client,
             indexURL,
@@ -115,17 +117,38 @@ public enum KawasakiTimetable {
                 jobs.append((links[indexOfKind], kind, route, labeled))
             }
         }
-        return try await withThrowingTaskGroup(of: [ScheduledTrip].self) { group in
+        if jobs.isEmpty {
+            return FetchedTimetable(trips: [], note: nil)
+        }
+        return try await withThrowingTaskGroup(of: Result<[ScheduledTrip], Error>.self) { group in
             for job in jobs {
                 group.addTask {
-                    try await loadOne(client, link: job.0, dayKind: job.1, route: job.2, destination: job.3)
+                    do {
+                        return .success(try await loadOne(client, link: job.0, dayKind: job.1, route: job.2, destination: job.3))
+                    } catch {
+                        return .failure(error)
+                    }
                 }
             }
             var trips: [ScheduledTrip] = []
-            for try await part in group {
-                trips.append(contentsOf: part)
+            var failures = 0
+            var firstError: Error?
+            for try await result in group {
+                if Task.isCancelled { throw CancellationError() }
+                switch result {
+                case .success(let part):
+                    trips.append(contentsOf: part)
+                case .failure(let error):
+                    if BoardClock.isCancellation(error) { throw error }
+                    failures += 1
+                    if firstError == nil { firstError = error }
+                }
             }
-            return trips
+            if trips.isEmpty {
+                throw firstError ?? BusTransportError("川崎市バスの時刻表の形が分かりません")
+            }
+            let note = failures > 0 ? "一部の路線の時刻表を取れませんでした" : nil
+            return FetchedTimetable(trips: trips, note: note)
         }
     }
 
@@ -153,7 +176,11 @@ public enum KawasakiTimetable {
             throw BusTransportError("時刻表ファイルがありません: \(name)")
         }
         let html = try await HTTP.fetchText(client, url)
-        return KawasakiTimetableParser.parse(html).map { time in
+        let times = KawasakiTimetableParser.parse(html)
+        if times.isEmpty {
+            throw BusTransportError("川崎市バスの時刻表の形が分かりません")
+        }
+        return times.map { time in
             ScheduledTrip(
                 operatorName: .kawasaki,
                 route: route,
@@ -163,6 +190,11 @@ public enum KawasakiTimetable {
             )
         }
     }
+}
+
+private struct FetchedTimetable: Sendable {
+    var trips: [ScheduledTrip]
+    var note: String?
 }
 
 private struct IndexResponse: Decodable {

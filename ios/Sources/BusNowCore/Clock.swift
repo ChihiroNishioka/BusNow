@@ -15,6 +15,27 @@ public struct FixedClock: BusClock {
     public func now() -> Date { instant }
 }
 
+public final class MutableClock: BusClock, @unchecked Sendable {
+    private let lock = NSLock()
+    private var instant: Date
+
+    public init(_ instant: Date) {
+        self.instant = instant
+    }
+
+    public func now() -> Date {
+        lock.lock()
+        defer { lock.unlock() }
+        return instant
+    }
+
+    public func advance(by interval: TimeInterval) {
+        lock.lock()
+        instant = instant.addingTimeInterval(interval)
+        lock.unlock()
+    }
+}
+
 public enum ISO8601Clock {
     public static func parse(_ string: String) -> Date? {
         let formats = [

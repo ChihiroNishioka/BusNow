@@ -105,6 +105,25 @@ public final class BoardCache: @unchecked Sendable {
         write("kawasaki-live.json", stored)
     }
 
+    /// Replaces trips for the day and route pairs in `trips` and keeps every other saved pair.
+    public func mergeKawasaki(_ trips: [ScheduledTrip], at: Date) -> [ScheduledTrip] {
+        lock.lock()
+        if kawasaki == nil {
+            kawasaki = read("kawasaki-live.json", as: StoredKawasaki.self)
+        }
+        var existing = kawasaki?.trips ?? []
+        if !trips.isEmpty {
+            let keys = Set(trips.map { "\($0.dayKind.rawValue)\t\($0.route)" })
+            existing.removeAll { keys.contains("\($0.dayKind.rawValue)\t\($0.route)") }
+            existing.append(contentsOf: trips)
+        }
+        let stored = StoredKawasaki(trips: existing, savedAt: at)
+        kawasaki = stored
+        lock.unlock()
+        write("kawasaki-live.json", stored)
+        return existing
+    }
+
     public func loadApproach() -> ApproachPayload? {
         lock.lock()
         defer { lock.unlock() }
@@ -130,7 +149,9 @@ public final class BoardCache: @unchecked Sendable {
     private func write<T: Encodable>(_ name: String, _ value: T) {
         guard let directory, let data = try? encoder.encode(value) else { return }
         let url = directory.appendingPathComponent(name)
-        try? data.write(to: url, options: .atomic)
+        Task.detached(priority: .utility) {
+            try? data.write(to: url, options: .atomic)
+        }
     }
 }
 

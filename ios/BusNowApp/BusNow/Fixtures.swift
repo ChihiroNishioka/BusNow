@@ -77,7 +77,7 @@ enum PreviewBoard {
                 SourceStatus(
                     operatorName: .tokyu,
                     ok: true,
-                    message: "東急バスの時刻表サイトに接続できなかったため、公式ページ（2025年7月1日改定）から取り込んだ時刻を表示しています",
+                    message: TokyuTimetable.snapshotNote(revision: "2025-07-01", checkedOn: "2026-10-17", verified: false),
                     updatedAt: nil
                 ),
                 SourceStatus(operatorName: .kawasaki, ok: true, message: nil, updatedAt: nil),

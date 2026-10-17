@@ -32,22 +32,22 @@ final class TextTests: XCTestCase {
 }
 
 final class ShiftJISTests: XCTestCase {
-    func testMetaCharsetDecodesShiftJIS() {
+    func testMetaCharsetDecodesShiftJIS() throws {
         let prefix = Data("<meta charset=\"shift_jis\">".utf8)
         var bytes = prefix
         bytes.append(0x8A)
         bytes.append(0x4F)
-        XCTAssertTrue(decodePage(bytes).contains("外"))
+        XCTAssertTrue(try decodePage(bytes).contains("外"))
     }
 
-    func testKawasakiWord() {
+    func testKawasakiWord() throws {
         let bytes = Data([0x90, 0xEC, 0x8D, 0xE8, 0x8E, 0x73, 0x83, 0x6F, 0x83, 0x58])
-        XCTAssertEqual(ShiftJIS.decode(bytes), "川崎市バス")
+        XCTAssertEqual(try ShiftJIS.decode(bytes), "川崎市バス")
     }
 
-    func testUTF8StaysUTF8() {
+    func testUTF8StaysUTF8() throws {
         let html = "<html><head><meta charset=\"utf-8\"></head><body>富士見台</body></html>"
-        XCTAssertEqual(decodePage(Data(html.utf8)), html)
+        XCTAssertEqual(try decodePage(Data(html.utf8)), html)
     }
 }
 
@@ -300,9 +300,15 @@ final class SnapshotTests: XCTestCase {
         XCTAssertEqual(snapshot.saturday.first, "06:09")
         XCTAssertEqual(snapshot.holiday.first, "06:09")
         XCTAssertGreaterThan(snapshot.weekday.count, 20)
+        XCTAssertEqual(snapshot.checkedOn, "2026-10-17")
+        XCTAssertEqual(snapshot.timetableVerified, false)
         XCTAssertEqual(
-            TokyuTimetable.snapshotNote(revision: snapshot.revision),
-            "東急バスの時刻表サイトに接続できなかったため、公式ページ（2025年7月1日改定）から取り込んだ時刻を表示しています"
+            TokyuTimetable.snapshotNote(
+                revision: snapshot.revision,
+                checkedOn: snapshot.checkedOn,
+                verified: snapshot.timetableVerified == true
+            ),
+            "東急バスの時刻表サイトに接続できなかったため、公式ページ（2025年7月1日改定）から取り込んだ時刻を表示しています。現在のダイヤと異なる可能性があります。2026年10月17日時点では最新かどうか確認できていません。"
         )
     }
 }
@@ -439,9 +445,17 @@ final class LoaderTests: XCTestCase {
         let stub = StubHTTP()
         stub.route { _ in throw BusTransportError("HTTP 403 https://blocked") }
         let loader = DepartureBoardLoader(client: stub.client(), clock: FixedClock(now), cache: TimetableFetchCache(), store: .memory())
-        let payload = await loader.load(now: now)
+        let payload = try await loader.load(now: now)
+        let snapshot = try TokyuTimetable.bundledSnapshot()
         XCTAssertEqual(payload.sources[0].ok, true)
-        XCTAssertEqual(payload.sources[0].message, TokyuTimetable.snapshotNote(revision: "2025-07-01"))
+        XCTAssertEqual(
+            payload.sources[0].message,
+            TokyuTimetable.snapshotNote(
+                revision: snapshot.revision,
+                checkedOn: snapshot.checkedOn,
+                verified: snapshot.timetableVerified == true
+            )
+        )
         XCTAssertEqual(payload.sources[1].ok, false)
         XCTAssertEqual(payload.departures.prefix(3).map(\.time), ["09:06", "09:15", "09:24"])
         XCTAssertFalse(payload.serviceFinishedToday)
@@ -456,19 +470,21 @@ final class LoaderTests: XCTestCase {
         let store = BoardCache.memory()
         let now = try date("2026-10-13T00:00:00Z")
         let loader = DepartureBoardLoader(client: stub.client(), cache: TimetableFetchCache(), store: store)
-        let payload = await loader.load(now: now, useCache: false)
+        let payload = try await loader.load(now: now, useCache: false)
         XCTAssertNil(payload.sources[0].message)
         XCTAssertEqual(payload.departures.first?.time, "09:10")
         XCTAssertEqual(store.loadTokyu()?.columns.weekday.first, "06:10")
+        XCTAssertEqual(store.loadTokyu()?.columns.saturday.first, "06:10")
+        XCTAssertEqual(store.loadTokyu()?.columns.holiday.first, "06:10")
     }
 
     func testSavedTokyuBeatsBundle() async throws {
         let store = BoardCache.memory()
         let savedAt = try date("2026-09-01T00:00:00Z")
-        store.saveTokyu(TimetableColumns(weekday: Array(repeating: "07:15", count: 20), saturday: [], holiday: []), at: savedAt)
+        store.saveTokyu(TimetableColumns(weekday: Array(repeating: "07:15", count: 20), saturday: Array(repeating: "07:15", count: 20), holiday: Array(repeating: "07:15", count: 20)), at: savedAt)
         let stub = StubHTTP()
         stub.route { _ in throw BusTransportError("HTTP 403 https://blocked") }
-        let result = await TokyuTimetable.load(stub.client(), now: try date("2026-10-17T01:00:00Z"), cache: TimetableFetchCache(), store: store, useCache: false)
+        let result = try await TokyuTimetable.load(stub.client(), now: try date("2026-10-17T01:00:00Z"), cache: TimetableFetchCache(), store: store, useCache: false)
         XCTAssertEqual(result.mode, .saved)
         XCTAssertEqual(result.columns.weekday.first, "07:15")
         XCTAssertEqual(result.note, "9月1日に取得した時刻表を表示しています")
@@ -513,7 +529,7 @@ final class LoaderTests: XCTestCase {
     }
 }
 
-private func date(_ text: String) throws -> Date {
+func date(_ text: String) throws -> Date {
     try XCTUnwrap(ISO8601Clock.parse(text))
 }
 
@@ -541,17 +557,17 @@ private func bus(_ id: String, minutes: Int, arrives: Date) -> ApproachBus {
     )
 }
 
-private func fixture(_ name: String, _ ext: String) throws -> String {
+func fixture(_ name: String, _ ext: String) throws -> String {
     let url = Bundle.module.url(forResource: name, withExtension: ext, subdirectory: "Fixtures")
         ?? Bundle.module.url(forResource: name, withExtension: ext)
     return try String(contentsOf: try XCTUnwrap(url), encoding: .utf8)
 }
 
-private func htmlResponse(_ html: String) -> HTTPResponse {
+func htmlResponse(_ html: String) -> HTTPResponse {
     HTTPResponse(status: 200, body: Data(html.utf8), url: URL(string: "https://example.test")!)
 }
 
-private func jsonResponse(_ object: Any) -> HTTPResponse {
+func jsonResponse(_ object: Any) -> HTTPResponse {
     let data = try! JSONSerialization.data(withJSONObject: object)
     return HTTPResponse(status: 200, body: data, url: URL(string: "https://example.test")!)
 }
@@ -559,13 +575,13 @@ private func jsonResponse(_ object: Any) -> HTTPResponse {
 private func liveDiagram(hours: ClosedRange<Int>) -> String {
     var rows = ["<table><tr><th>時</th><th>平日</th><th>土曜</th><th>休日</th></tr>"]
     for hour in hours {
-        rows.append("<tr><td>\(hour)</td><td>10 \(10)分はつ</td><td></td><td></td></tr>")
+        rows.append("<tr><td>\(hour)</td><td>10分はつ</td><td>10分はつ</td><td>10分はつ</td></tr>")
     }
     rows.append("</table>")
     return rows.joined()
 }
 
-private final class StubHTTP: @unchecked Sendable {
+final class StubHTTP: @unchecked Sendable {
     struct Route {
         var match: (URL) -> Bool
         var body: (HTTPRequest) throws -> HTTPResponse

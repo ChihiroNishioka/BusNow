@@ -31,6 +31,16 @@ public enum KawasakiApproach {
         }
         let root = HTMLParser.parse(html)
         let updated = firstMatch(html, pattern: "fa-clock-o\"\\s*>\\s*</i>\\s*(\\d{1,2}:\\d{2})")?.groups.dropFirst().first ?? nil
+        let hasBuslist = !root.find("#buslist").isEmpty
+        let hasNotice = !root.find("#errInfo").isEmpty
+        if !hasBuslist && !hasNotice {
+            return KawasakiApproachParse(
+                buses: [],
+                updatedAt: updated,
+                message: nil,
+                pageError: "川崎市バスナビの接近情報の形が分かりません"
+            )
+        }
         let notice = normalizeDigits(root.find("#errInfo").map { $0.textContent() }.joined())
         var buses: [ApproachSighting] = []
         for (index, box) in root.find("#buslist .route_box").enumerated() {
@@ -56,7 +66,15 @@ public enum KawasakiApproach {
                 )
             )
         }
-        let noBus = containsMatch(notice, pattern: "接近しているバスはありません")
+        let noBus = containsMatch(notice.isEmpty ? html : notice, pattern: "接近しているバスはありません")
+        if buses.isEmpty && !hasNotice && !noBus {
+            return KawasakiApproachParse(
+                buses: [],
+                updatedAt: updated,
+                message: nil,
+                pageError: "川崎市バスナビの接近情報の形が分かりません"
+            )
+        }
         let message: String?
         if noBus {
             message = notice
@@ -81,6 +99,9 @@ public enum KawasakiApproach {
                 transportFailed: false
             )
         } catch {
+            if BoardClock.isCancellation(error) || Task.isCancelled {
+                return OperatorOutcome(buses: [], source: failed(.kawasaki, ""), transportFailed: false, cancelled: true)
+            }
             return OperatorOutcome(
                 buses: [],
                 source: failed(.kawasaki, ReadableError.message(for: error)),

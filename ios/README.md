@@ -4,6 +4,8 @@ iPhone 単体で動く SwiftUI アプリです。接近と時刻表は端末か�
 
 App Store への公開用には作っていません。東急バスの時刻表サイトは自動取得を禁止しており、ガイドライン 4.2 / 5.2.2 の観点でもストア申請は見送りです。想定は本人のシミュレータ確認と、必要なら TestFlight の個人利用です。署名チームは入れていません。
 
+シミュレータの CI は `CODE_SIGNING_ALLOWED=NO` と空の Development Team でビルドします。実機や TestFlight に載せるときは、Xcode で自分の Apple ID の Team を選び、署名をオンにしてください。このリポジトリは端末向けの署名設定を入れていません。
+
 ## 構成
 
 - `Package.swift` … `BusNowCore`。Foundation のみ。UIKit / SwiftUI には依存しません。
@@ -19,7 +21,7 @@ App Store への公開用には作っていません。東急バスの時刻表�
 
 ## この環境で確認したこと
 
-- 2026-10-17 に `https://transfer.navitime.biz` の東急バス時刻表を取りにいくと CloudFront が HTTP 403（Request blocked）を返しました。同梱の `Sources/BusNowCore/Resources/tokyu-mizonokuchi.json` は Web 版と同じ **2025-07-01 改定**のままです。ライブが取れないときは、画面に「公式ページ（2025年7月1日改定）から取り込んだ時刻を表示しています」と出します。
+- 2026-10-17 に `https://transfer.navitime.biz` の東急バス時刻表を取りにいくと CloudFront が HTTP 403（Request blocked）を返しました。同梱の `Sources/BusNowCore/Resources/tokyu-mizonokuchi.json` は Web 版と同じ **2025-07-01 改定**のままです。確認日は 2026-10-17、最新かどうかは未確認です。ライブが取れないときは、その改定日と「現在のダイヤと異なる可能性があります」「2026年10月17日時点では最新かどうか確認できていません」を画面に出します。
 - HTML は SwiftSoup ではなく、Foundation だけで動く自前パーサです。Linux の `swift test` を UIKit なしで回すためです。フィクスチャ（東急バスナビ、川崎市バスナビ、NAVITIME の表、川崎市バスの時刻表）で Web 版と同じ結果になることをテストしています。
 - Shift_JIS は `Resources/cp932.bin`（WHATWG / Python の cp932、9604 組）でデコードします。Linux に `String.Encoding.shiftJIS` が無くても、iOS と同じ結果になります。
 

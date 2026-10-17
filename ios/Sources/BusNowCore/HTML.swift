@@ -130,43 +130,55 @@ enum HTMLParser {
         "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr",
     ]
 
+    static let maxCharacters = 1_500_000
+    static let maxDepth = 48
+
     static func parse(_ source: String) -> HTMLNode {
+        let limited = source.count > maxCharacters ? String(source.prefix(maxCharacters)) : source
         let root = HTMLNode(tag: "#document", kind: .element)
         var stack = [root]
-        var index = source.startIndex
-        while index < source.endIndex {
-            if source[index] == "<" {
-                let next = source.index(after: index)
-                if next >= source.endIndex {
-                    appendText(String(source[index]), to: stack.last)
+        var index = limited.startIndex
+        var steps = 0
+        let stepLimit = limited.count + 8
+        while index < limited.endIndex {
+            steps += 1
+            if steps > stepLimit { break }
+            let before = index
+            if limited[index] == "<" {
+                let next = limited.index(after: index)
+                if next >= limited.endIndex {
+                    appendText(String(limited[index]), to: stack.last)
                     break
                 }
-                let marker = source[next]
-                if marker == "!" {
-                    index = skipBang(source, index)
-                    continue
+                let marker = limited[next]
+                if marker == "!" || marker == "?" {
+                    index = skipBang(limited, index)
+                } else if marker == "/" {
+                    index = closeTag(limited, index, &stack)
+                } else if marker.isASCII && marker.isLetter {
+                    index = openTag(limited, index, &stack)
+                } else {
+                    appendText(String(limited[index]), to: stack.last)
+                    index = next
                 }
-                if marker == "/" {
-                    index = closeTag(source, index, &stack)
-                    continue
+            } else {
+                let start = index
+                while index < limited.endIndex, limited[index] != "<" {
+                    index = limited.index(after: index)
                 }
-                if marker.isASCII && marker.isLetter {
-                    index = openTag(source, index, &stack)
-                    continue
+                let raw = String(limited[start..<index])
+                if !raw.isEmpty {
+                    appendText(decodeEntities(raw), to: stack.last)
                 }
             }
-            let start = index
-            while index < source.endIndex, source[index] != "<" {
-                index = source.index(after: index)
-            }
-            let raw = String(source[start..<index])
-            if !raw.isEmpty {
-                appendText(decodeEntities(raw), to: stack.last)
+            if index <= before {
+                appendText(String(limited[before]), to: stack.last)
+                index = limited.index(after: before)
             }
         }
         while stack.count > 1 {
             let node = stack.removeLast()
-            node.finish(source, source.endIndex)
+            node.finish(limited, limited.endIndex)
         }
         return root
     }
@@ -219,6 +231,8 @@ enum HTMLParser {
                     index = source.index(after: after)
                     break
                 }
+                index = after
+                continue
             }
             let attributeStart = index
             while index < source.endIndex {
@@ -255,6 +269,9 @@ enum HTMLParser {
                     value = String(source[valueStart..<index])
                 }
             }
+            if index == attributeStart, index < source.endIndex {
+                index = source.index(after: index)
+            }
             if !attribute.isEmpty {
                 attributes[String(attribute)] = decodeEntities(value)
             }
@@ -281,6 +298,10 @@ enum HTMLParser {
             }
         }
         node.contentStart = index
+        if stack.count >= maxDepth {
+            node.didClose = true
+            return index
+        }
         stack.append(node)
         return index
     }

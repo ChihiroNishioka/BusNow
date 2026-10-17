@@ -32,7 +32,7 @@ public enum TokyuApproach {
                 copy.id = "\(item.id)-\(buses.count)"
                 buses.append(copy)
             }
-        } else {
+        } else if !root.find("td.businfo, td.colmsg").isEmpty {
             for (index, element) in root.find("td.businfo, td.colmsg").enumerated() {
                 let fragment = element.innerHTML
                 let text = normalizeDigits(htmlToText(fragment))
@@ -43,6 +43,10 @@ public enum TokyuApproach {
                     buses.append(copy)
                 }
             }
+        } else if containsMatch(plain, pattern: "接近しているバスはありません|運行していません") {
+            return TokyuApproachParse(buses: [], updatedAt: updated, pageError: nil)
+        } else {
+            return TokyuApproachParse(buses: [], updatedAt: updated, pageError: "東急バスナビの接近情報の形が分かりません")
         }
         return TokyuApproachParse(buses: dedupe(buses), updatedAt: updated, pageError: nil)
     }
@@ -61,6 +65,9 @@ public enum TokyuApproach {
                 transportFailed: false
             )
         } catch {
+            if BoardClock.isCancellation(error) || Task.isCancelled {
+                return OperatorOutcome(buses: [], source: failed(.tokyu, ""), transportFailed: false, cancelled: true)
+            }
             return OperatorOutcome(
                 buses: [],
                 source: failed(.tokyu, ReadableError.message(for: error)),
@@ -174,6 +181,7 @@ struct OperatorOutcome: Sendable {
     var buses: [ApproachSighting]
     var source: SourceStatus
     var transportFailed: Bool
+    var cancelled: Bool = false
 }
 
 func failed(_ name: BusOperator, _ message: String) -> SourceStatus {

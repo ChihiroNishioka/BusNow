@@ -43,7 +43,7 @@ struct DepartureBoardView: View {
                         .accessibilityIdentifier("board.hero")
                     if hero == BoardCopy.departuresFailed {
                         Button(BoardCopy.retry) {
-                            Task { await model.load(useCache: false) }
+                            model.refresh()
                         }
                         .font(Theme.maru(17, relativeTo: .body))
                         .foregroundStyle(Theme.cream)
@@ -75,6 +75,7 @@ struct DepartureBoardView: View {
             }
         }
         .task { await model.load(useCache: true) }
+        .onDisappear { model.stop() }
     }
 }
 

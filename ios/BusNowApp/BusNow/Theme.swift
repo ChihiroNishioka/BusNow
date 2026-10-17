@@ -17,7 +17,27 @@ enum Theme {
         for name in ["HiraMaruProN-W4", "HiraginoMaruGothicProN-W4"] where UIFont(name: name, size: size) != nil {
             return .custom(name, size: size, relativeTo: textStyle)
         }
-        return .system(size: size, weight: .black, design: .rounded)
+        let base = UIFont.systemFont(ofSize: size, weight: .black)
+        let rounded = base.fontDescriptor.withDesign(.rounded).map { UIFont(descriptor: $0, size: size) } ?? base
+        let scaled = UIFontMetrics(forTextStyle: uiTextStyle(textStyle)).scaledFont(for: rounded)
+        return Font(scaled)
+    }
+
+    private static func uiTextStyle(_ style: Font.TextStyle) -> UIFont.TextStyle {
+        switch style {
+        case .largeTitle: return .largeTitle
+        case .title: return .title1
+        case .title2: return .title2
+        case .title3: return .title3
+        case .headline: return .headline
+        case .subheadline: return .subheadline
+        case .body: return .body
+        case .callout: return .callout
+        case .footnote: return .footnote
+        case .caption: return .caption1
+        case .caption2: return .caption2
+        default: return .body
+        }
     }
 
     static func digits(_ size: CGFloat, relativeTo textStyle: Font.TextStyle = .largeTitle) -> Font {

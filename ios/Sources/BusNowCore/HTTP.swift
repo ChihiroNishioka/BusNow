@@ -50,7 +50,7 @@ public enum HTTP {
     public static func fetchText(_ client: HTTPClient, _ url: URL) async throws -> String {
         let response = try await client.fetch(HTTPRequest(url: url))
         try validate(response)
-        return decodePage(response.body)
+        return try decodePage(response.body)
     }
 
     public static func fetchFormJSON<T: Decodable>(
@@ -120,9 +120,13 @@ public enum HTTP {
                 return HTTPResponse(status: http.statusCode, body: data, url: request.url, headers: headers)
             } catch let error as BusTransportError {
                 throw error
+            } catch is CancellationError {
+                throw CancellationError()
             } catch let error as URLError {
+                if error.code == .cancelled { throw CancellationError() }
                 throw map(error)
             } catch {
+                if BoardClock.isCancellation(error) { throw CancellationError() }
                 let text = error.localizedDescription
                 if containsMatch(text, pattern: "timeout|timed out", caseInsensitive: true) {
                     throw BusTransportError("timeout")

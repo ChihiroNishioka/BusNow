@@ -1,0 +1,443 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		C10000000000000000000012 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000012 /* Assets.xcassets */; };
+		C10000000000000000000021 /* BusNowApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000021 /* BusNowApp.swift */; };
+		C10000000000000000000022 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000022 /* RootView.swift */; };
+		C10000000000000000000023 /* TopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000023 /* TopView.swift */; };
+		C10000000000000000000024 /* Chrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000024 /* Chrome.swift */; };
+		C10000000000000000000025 /* ApproachBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000025 /* ApproachBoardView.swift */; };
+		C10000000000000000000026 /* DepartureBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000026 /* DepartureBoardView.swift */; };
+		C10000000000000000000027 /* Fixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000027 /* Fixtures.swift */; };
+		C10000000000000000000028 /* Launch.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000028 /* Launch.swift */; };
+		C10000000000000000000029 /* BoardModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000029 /* BoardModels.swift */; };
+		C1000000000000000000002A /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000000000000000000002A /* Theme.swift */; };
+		C10000000000000000000031 /* BusNowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000031 /* BusNowUITests.swift */; };
+		C10000000000000000000040 /* BusNowCore in Frameworks */ = {isa = PBXBuildFile; productRef = F10000000000000000000011 /* BusNowCore */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		F10000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B10000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D10000000000000000000001;
+			remoteInfo = BusNow;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		B10000000000000000000010 /* BusNow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BusNow.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10000000000000000000011 /* BusNowUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BusNowUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B10000000000000000000012 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B10000000000000000000013 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B10000000000000000000021 /* BusNowApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusNowApp.swift; sourceTree = "<group>"; };
+		B10000000000000000000022 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		B10000000000000000000023 /* TopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopView.swift; sourceTree = "<group>"; };
+		B10000000000000000000024 /* Chrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chrome.swift; sourceTree = "<group>"; };
+		B10000000000000000000025 /* ApproachBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApproachBoardView.swift; sourceTree = "<group>"; };
+		B10000000000000000000026 /* DepartureBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartureBoardView.swift; sourceTree = "<group>"; };
+		B10000000000000000000027 /* Fixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fixtures.swift; sourceTree = "<group>"; };
+		B10000000000000000000028 /* Launch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Launch.swift; sourceTree = "<group>"; };
+		B10000000000000000000029 /* BoardModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardModels.swift; sourceTree = "<group>"; };
+		B1000000000000000000002A /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		B10000000000000000000031 /* BusNowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusNowUITests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E10000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C10000000000000000000040 /* BusNowCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10000000000000000000005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B10000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000004 /* BusNow */,
+				B10000000000000000000005 /* BusNowUITests */,
+				B10000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B10000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000010 /* BusNow.app */,
+				B10000000000000000000011 /* BusNowUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B10000000000000000000004 /* BusNow */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000021 /* BusNowApp.swift */,
+				B10000000000000000000022 /* RootView.swift */,
+				B10000000000000000000023 /* TopView.swift */,
+				B10000000000000000000024 /* Chrome.swift */,
+				B10000000000000000000025 /* ApproachBoardView.swift */,
+				B10000000000000000000026 /* DepartureBoardView.swift */,
+				B10000000000000000000027 /* Fixtures.swift */,
+				B10000000000000000000028 /* Launch.swift */,
+				B10000000000000000000029 /* BoardModels.swift */,
+				B1000000000000000000002A /* Theme.swift */,
+				B10000000000000000000012 /* Assets.xcassets */,
+				B10000000000000000000013 /* Info.plist */,
+			);
+			path = BusNow;
+			sourceTree = "<group>";
+		};
+		B10000000000000000000005 /* BusNowUITests */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000031 /* BusNowUITests.swift */,
+			);
+			path = BusNowUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D10000000000000000000001 /* BusNow */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = L10000000000000000000002 /* Build configuration list for PBXNativeTarget "BusNow" */;
+			buildPhases = (
+				E10000000000000000000001 /* Sources */,
+				E10000000000000000000002 /* Frameworks */,
+				E10000000000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BusNow;
+			packageProductDependencies = (
+				F10000000000000000000011 /* BusNowCore */,
+			);
+			productName = BusNow;
+			productReference = B10000000000000000000010 /* BusNow.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D10000000000000000000002 /* BusNowUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = L10000000000000000000003 /* Build configuration list for PBXNativeTarget "BusNowUITests" */;
+			buildPhases = (
+				E10000000000000000000004 /* Sources */,
+				E10000000000000000000005 /* Frameworks */,
+				E10000000000000000000006 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F10000000000000000000002 /* PBXTargetDependency */,
+			);
+			name = BusNowUITests;
+			packageProductDependencies = (
+			);
+			productName = BusNowUITests;
+			productReference = B10000000000000000000011 /* BusNowUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B10000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					D10000000000000000000001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					D10000000000000000000002 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = D10000000000000000000001;
+					};
+				};
+			};
+			buildConfigurationList = L10000000000000000000001 /* Build configuration list for PBXProject "BusNow" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = ja;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				ja,
+				en,
+				Base,
+			);
+			mainGroup = B10000000000000000000002;
+			packageReferences = (
+				F10000000000000000000010 /* XCLocalSwiftPackageReference ".." */,
+			);
+			productRefGroup = B10000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D10000000000000000000001 /* BusNow */,
+				D10000000000000000000002 /* BusNowUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E10000000000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C10000000000000000000012 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10000000000000000000006 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E10000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C10000000000000000000021 /* BusNowApp.swift in Sources */,
+				C10000000000000000000022 /* RootView.swift in Sources */,
+				C10000000000000000000023 /* TopView.swift in Sources */,
+				C10000000000000000000024 /* Chrome.swift in Sources */,
+				C10000000000000000000025 /* ApproachBoardView.swift in Sources */,
+				C10000000000000000000026 /* DepartureBoardView.swift in Sources */,
+				C10000000000000000000027 /* Fixtures.swift in Sources */,
+				C10000000000000000000028 /* Launch.swift in Sources */,
+				C10000000000000000000029 /* BoardModels.swift in Sources */,
+				C1000000000000000000002A /* Theme.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10000000000000000000004 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C10000000000000000000031 /* BusNowUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F10000000000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D10000000000000000000001 /* BusNow */;
+			targetProxy = F10000000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		P10000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		P10000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		P10000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BusNow/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.busnow.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		P10000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BusNow/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.busnow.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		P10000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.busnow.ios.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = BusNow;
+			};
+			name = Debug;
+		};
+		P10000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.busnow.ios.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = BusNow;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		L10000000000000000000001 /* Build configuration list for PBXProject "BusNow" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				P10000000000000000000001 /* Debug */,
+				P10000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		L10000000000000000000002 /* Build configuration list for PBXNativeTarget "BusNow" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				P10000000000000000000003 /* Debug */,
+				P10000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		L10000000000000000000003 /* Build configuration list for PBXNativeTarget "BusNowUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				P10000000000000000000005 /* Debug */,
+				P10000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		F10000000000000000000010 /* XCLocalSwiftPackageReference ".." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F10000000000000000000011 /* BusNowCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F10000000000000000000010 /* XCLocalSwiftPackageReference ".." */;
+			productName = BusNowCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = B10000000000000000000001 /* Project object */;
+}

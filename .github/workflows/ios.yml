@@ -93,9 +93,9 @@ jobs:
             -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
             -derivedDataPath ios/BusNowApp/DerivedData \
             -resultBundlePath "$GITHUB_WORKSPACE/TestResults.xcresult" \
-            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=YES \
+            CODE_SIGNING_ALLOWED=NO \
             | tee xcodebuild.log
 
       - name: Simulator screenshots

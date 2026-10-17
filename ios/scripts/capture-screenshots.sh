@@ -25,10 +25,12 @@ fi
 xcrun simctl boot "$UDID" || true
 xcrun simctl bootstatus "$UDID" -b
 
-if ! codesign --verify "$APP_PATH" >/dev/null 2>&1; then
-  codesign --force --sign - --timestamp=none "$APP_PATH"
+if ! xcrun simctl get_app_container "$UDID" app.busnow.ios >/dev/null 2>&1; then
+  if ! xcrun simctl install "$UDID" "$APP_PATH"; then
+    codesign --force --deep --sign - --timestamp=none "$APP_PATH"
+    xcrun simctl install "$UDID" "$APP_PATH"
+  fi
 fi
-xcrun simctl install "$UDID" "$APP_PATH"
 xcrun simctl status_bar "$UDID" override \
   --time "10:30" \
   --batteryState charged \

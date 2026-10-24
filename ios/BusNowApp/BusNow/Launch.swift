@@ -55,7 +55,7 @@ struct LaunchConfig {
     static func current(_ arguments: [String] = ProcessInfo.processInfo.arguments) -> LaunchConfig {
         var scenario = value("busnow-scenario", arguments).flatMap(PreviewScenario.init(argument:))
         #if os(watchOS)
-        if let scenario, !scenario.isRecorded {
+        if let current = scenario, !current.isRecorded {
             scenario = nil
         }
         #endif

@@ -63,7 +63,7 @@ GitHub Actions（`.github/workflows/ios.yml`）は ubuntu-24.04 で `swift test`
 
 向きの既定は自動です。日本時間の午前（0時から11時）は富士見台発、正午以降は溝の口駅南口発です。Watch の「向き」で自動・富士見台・溝の口を App Group（`group.app.busnow.ios`、キー `busnow.facingMode`）に保存し、コンプリケーション拡張も同じグループを読みます。見出しと「向き」は1行に収まらないときは縦に積むので、最大の Dynamic Type でも重なりません。溝の口の見出しは黒地で `#7EB8DC`（約 9.8:1）です。
 
-コンプリケーション拡張は `BusNowWatch.app/PlugIns/BusNowComplication.appex` に埋め込みます。シミュレータはアドホック署名で、CI が埋め込みと `group.app.busnow.ios` を確認します。文字盤への配置は実機の署名が要ります。
+コンプリケーション拡張は `BusNowWatch.app/PlugIns/BusNowComplication.appex` に埋め込みます。CI は `CODE_SIGNING_ALLOWED=NO` でビルドしてから、アプリと拡張だけをアドホック署名し、`group.app.busnow.ios` が付いていることを確認します。SwiftPM のリソースバンドルまで署名させると codesign が拒否するためです。文字盤への配置は実機の署名が要ります。
 
 コンプリケーションは `accessoryCircular` と `accessoryInline` です。接近の残り時間は `Text(date, style: .timer)` で、タイムラインを毎秒作り直さずに進みます。タイムラインの再要求は 30 分間隔（1日 48 回の要求で、WidgetKit の目安 40〜70 回の内側）です。取得から 5 分で接近は「古い」になります。円形の短い表示は「ダイヤ未確認」を時刻より先に出します。時刻表の行は発車時刻の1分後に次の便へ渡します。架空のバスは出しません。取れなければ失敗、前回の保存があればその鮮度付きです。
 

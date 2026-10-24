@@ -244,20 +244,43 @@ jobs:
       - name: BusNow Watch tests
         run: |
           set -o pipefail
-          # Ad-hoc signing is set on the Watch app and the complication target.
-          # A global CODE_SIGNING_ALLOWED=YES also signs the SwiftPM resource bundle, which codesign rejects.
-          xcodebuild test \
+          # The Watch targets are ad-hoc signed in the project. CI still passes
+          # CODE_SIGNING_ALLOWED=NO so Xcode does not try to sign the SwiftPM
+          # resource bundle (codesign rejects that bundle). The appex is embedded
+          # by the copy phase, then signed here with the App Group entitlement.
+          xcodebuild build-for-testing \
+            -project ios/BusNowApp/BusNow.xcodeproj \
+            -scheme BusNowWatch \
+            -destination "platform=watchOS Simulator,id=${{ steps.sim.outputs.watch }}" \
+            -derivedDataPath ios/BusNowApp/DerivedDataWatch \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee watch-xcodebuild.log
+          APP="$(find ios/BusNowApp/DerivedDataWatch -path '*watchsimulator*' -name 'BusNowWatch.app' -type d | head -1)"
+          echo "app=$APP"
+          test -d "$APP/PlugIns/BusNowComplication.appex"
+          if [[ -d "$APP/PlugIns/BusNowWatchTests.xctest" ]]; then
+            codesign --force --sign - --timestamp=none "$APP/PlugIns/BusNowWatchTests.xctest"
+          fi
+          codesign --force --sign - --timestamp=none \
+            --entitlements ios/BusNowApp/BusNowComplication/BusNowComplication.entitlements \
+            "$APP/PlugIns/BusNowComplication.appex"
+          codesign --force --sign - --timestamp=none \
+            --entitlements ios/BusNowApp/BusNowWatch/BusNowWatch.entitlements \
+            "$APP"
+          codesign -d --entitlements :- "$APP" | grep -q "group.app.busnow.ios"
+          codesign -d --entitlements :- "$APP/PlugIns/BusNowComplication.appex" | grep -q "group.app.busnow.ios"
+          xcodebuild test-without-building \
             -project ios/BusNowApp/BusNow.xcodeproj \
             -scheme BusNowWatch \
             -destination "platform=watchOS Simulator,id=${{ steps.sim.outputs.watch }}" \
             -derivedDataPath ios/BusNowApp/DerivedDataWatch \
             -resultBundlePath "$GITHUB_WORKSPACE/WatchAppResults.xcresult" \
-            | tee watch-xcodebuild.log
-          APP="$(find ios/BusNowApp/DerivedDataWatch -path '*watchsimulator*' -name 'BusNowWatch.app' -type d | head -1)"
-          echo "app=$APP"
-          test -d "$APP/PlugIns/BusNowComplication.appex"
-          codesign -d --entitlements :- "$APP" | grep -q "group.app.busnow.ios"
-          codesign -d --entitlements :- "$APP/PlugIns/BusNowComplication.appex" | grep -q "group.app.busnow.ios"
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee -a watch-xcodebuild.log
 
       - name: Watch screenshots
         if: success()

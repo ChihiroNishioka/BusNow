@@ -300,7 +300,7 @@ final class SnapshotTests: XCTestCase {
         XCTAssertEqual(snapshot.saturday.first, "06:09")
         XCTAssertEqual(snapshot.holiday.first, "06:09")
         XCTAssertGreaterThan(snapshot.weekday.count, 20)
-        XCTAssertEqual(snapshot.checkedOn, "2026-10-17")
+        XCTAssertEqual(snapshot.checkedOn, "2026-10-24")
         XCTAssertEqual(snapshot.timetableVerified, false)
         XCTAssertEqual(
             TokyuTimetable.snapshotNote(
@@ -308,7 +308,7 @@ final class SnapshotTests: XCTestCase {
                 checkedOn: snapshot.checkedOn,
                 verified: snapshot.timetableVerified == true
             ),
-            "東急バスの時刻表サイトに接続できなかったため、公式ページ（2025年7月1日改定）から取り込んだ時刻を表示しています。現在のダイヤと異なる可能性があります。2026年10月17日時点では最新かどうか確認できていません。"
+            "東急バスの時刻表サイトに接続できなかったため、公式ページ（2025年7月1日改定）から取り込んだ時刻を表示しています。現在のダイヤと異なる可能性があります。2026年10月24日時点では最新かどうか確認できていません。"
         )
     }
 }

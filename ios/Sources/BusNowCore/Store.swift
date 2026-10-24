@@ -53,6 +53,7 @@ public final class BoardCache: @unchecked Sendable {
     private var tokyu: StoredColumns?
     private var kawasaki: StoredKawasaki?
     private var approach: ApproachPayload?
+    private var departures: DeparturePayload?
     private let encoder = BusJSON.encoder()
     private let decoder = BusJSON.decoder()
 
@@ -137,6 +138,21 @@ public final class BoardCache: @unchecked Sendable {
         approach = payload
         lock.unlock()
         write("approach.json", payload)
+    }
+
+    public func loadDepartures() -> DeparturePayload? {
+        lock.lock()
+        defer { lock.unlock() }
+        if let departures { return departures }
+        departures = read("departures-live.json", as: DeparturePayload.self)
+        return departures
+    }
+
+    public func saveDepartures(_ payload: DeparturePayload) {
+        lock.lock()
+        departures = payload
+        lock.unlock()
+        write("departures-live.json", payload)
     }
 
     private func read<T: Decodable>(_ name: String, as type: T.Type) -> T? {

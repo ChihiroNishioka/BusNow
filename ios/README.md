@@ -21,7 +21,7 @@ App Store への公開用には作っていません。東急バスの時刻表�
 
 ## この環境で確認したこと
 
-- 2026-10-17 に `https://transfer.navitime.biz` の東急バス時刻表を取りにいくと CloudFront が HTTP 403（Request blocked）を返しました。同梱の `Sources/BusNowCore/Resources/tokyu-mizonokuchi.json` は Web 版と同じ **2025-07-01 改定**のままです。確認日は 2026-10-17、最新かどうかは未確認です。ライブが取れないときは、その改定日と「現在のダイヤと異なる可能性があります」「2026年10月17日時点では最新かどうか確認できていません」を画面に出します。
+- 2026-10-24 に `https://transfer.navitime.biz` の東急バス時刻表を取りにいくと、2026-10-17 と同じく CloudFront が HTTP 403（Request blocked）を返しました。同梱の `Sources/BusNowCore/Resources/tokyu-mizonokuchi.json` は **2025-07-01 改定**のままです。同じ日に駅探の溝22・溝の口駅南口・蟹ケ谷行き（平日 `dw=0`、土曜は当日のページ、休日 `dw=2`）と時刻列を照合すると、平日 113 本・土曜 84 本・休日 80 本が同梱データと一致しました。公式ページの改定日そのものは読めていないので `timetableVerified` は `false` のまま、確認日だけ `2026-10-24` に進めています。ライブが取れないときは、その改定日と「現在のダイヤと異なる可能性があります」「2026年10月24日時点では最新かどうか確認できていません」を画面に出します。
 - HTML は SwiftSoup ではなく、Foundation だけで動く自前パーサです。Linux の `swift test` を UIKit なしで回すためです。フィクスチャ（東急バスナビ、川崎市バスナビ、NAVITIME の表、川崎市バスの時刻表）で Web 版と同じ結果になることをテストしています。
 - Shift_JIS は `Resources/cp932.bin`（WHATWG / Python の cp932、9604 組）でデコードします。Linux に `String.Encoding.shiftJIS` が無くても、iOS と同じ結果になります。
 
@@ -57,6 +57,20 @@ xcodebuild test \
 
 GitHub Actions（`.github/workflows/ios.yml`）は ubuntu-24.04 で `swift test`、macos-15 でシミュレータの `xcodebuild test` とスクリーンショットを取ります。画像はアーティファクト `ios-screenshots` です。このリポジトリを編集した Linux 環境ではシミュレータを起動できないため、`docs/screenshots/` には画像を置いていません。
 
+## Apple Watch
+
+取得・カウントダウン・鮮度・向きの判定は `BusNowCore` に置きます。Foundation だけなので iOS 17 / watchOS 10 / macOS 13 から同じパッケージを使います。画面とコンプリケーションは `BusNowApp/BusNowWatch` と `BusNowApp/BusNowComplication` です。Watch は iPhone を介さず、同じ URL を自分で取ります。
+
+向きの既定は自動です。日本時間の午前（0時から11時）は富士見台発、正午以降は溝の口駅南口発です。Watch の「向き」で自動・富士見台・溝の口を保存します。コンプリケーションは同じキーを App Group（`group.app.busnow.ios`）から読み、グループが無い署名なしビルドでは自動のままです。
+
+コンプリケーション拡張はスキーム `BusNowWatch` のテストビルドに含まれます。署名なしでは appex をアプリへ埋め込めないため、コピーフェーズは外してあります。文字盤への配置は実機の署名が要ります。
+
+コンプリケーションは `accessoryCircular` と `accessoryInline` です。接近の残り時間は `Text(date, style: .timer)` で、タイムラインを毎秒作り直さずに進みます。タイムラインの再要求は 30 分間隔（1日 48 回の要求で、WidgetKit の目安 40〜70 回の内側）です。取得から 5 分を超えた接近は「古い」と出します。時刻表が同梱スナップショットのときは「ダイヤ未確認」も出します。架空のバスは出しません。取れなければ失敗、前回の保存があればその鮮度付きです。
+
+フォアグラウンド中は 30 秒ごとに取り直します。バックグラウンドは `WKApplicationRefresh` で、次の希望時刻は 30 分後です。バックグラウンドとコンプリケーションの HTTP は 8 秒で打ち切ります（実機で測った値ではありません）。
+
+スクリーンショット用の `-busnow-scenario recorded-approach|recorded-departures|recorded-complications` は、`BusNowApp/RecordedFixtures/` に保存した実取得だけを出します。本番の起動引数が無い経路では使いません。中身と取得時刻は `SOURCE.txt` に書いてあります。コンプリケーションの画像は文字盤の写真ではなく、同じビューを録画時刻で描いたものです。
+
 ## 範囲外
 
-ウィジェット、ロック画面、Live Activity、Apple Watch、プッシュ通知、ODPT / GTFS への切り替え、App Store 用のメタデータ、TestFlight へのアップロード。
+ロック画面、Live Activity、`accessoryRectangular` / `accessoryCorner`、WatchConnectivity、プッシュ通知、ODPT / GTFS への切り替え、App Store 用のメタデータ、TestFlight へのアップロード、実機の署名。

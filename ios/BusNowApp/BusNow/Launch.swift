@@ -16,6 +16,18 @@ enum PreviewScenario: String {
     case departures
     case departuresFinished
     case departuresDown
+    case recordedApproach
+    case recordedDepartures
+    case recordedComplications
+
+    var isRecorded: Bool {
+        switch self {
+        case .recordedApproach, .recordedDepartures, .recordedComplications:
+            return true
+        default:
+            return false
+        }
+    }
 
     init?(argument: String) {
         switch argument {
@@ -28,6 +40,9 @@ enum PreviewScenario: String {
         case "departures": self = .departures
         case "departures-finished": self = .departuresFinished
         case "departures-down": self = .departuresDown
+        case "recorded-approach": self = .recordedApproach
+        case "recorded-departures": self = .recordedDepartures
+        case "recorded-complications": self = .recordedComplications
         default: return nil
         }
     }
@@ -38,8 +53,13 @@ struct LaunchConfig {
     var start: BoardRoute?
 
     static func current(_ arguments: [String] = ProcessInfo.processInfo.arguments) -> LaunchConfig {
-        LaunchConfig(scenario: value("busnow-scenario", arguments).flatMap(PreviewScenario.init(argument:)),
-                     start: startRoute(value("busnow-start", arguments)))
+        var scenario = value("busnow-scenario", arguments).flatMap(PreviewScenario.init(argument:))
+        #if os(watchOS)
+        if let scenario, !scenario.isRecorded {
+            scenario = nil
+        }
+        #endif
+        return LaunchConfig(scenario: scenario, start: startRoute(value("busnow-start", arguments)))
     }
 
     private static func value(_ name: String, _ arguments: [String]) -> String? {
@@ -84,8 +104,19 @@ final class BusServices {
         self.start = start
     }
 
-    static func make() -> BusServices {
+    static func make(store: BoardCache = .appSupport()) -> BusServices {
         let launch = LaunchConfig.current()
+        if launch.scenario?.isRecorded == true {
+            return BusServices(
+                client: HTTPClient { _ in throw BusTransportError("recorded fixture") },
+                clock: SystemClock(),
+                fetchCache: TimetableFetchCache(),
+                store: .memory(),
+                scenario: launch.scenario,
+                fixedNow: nil,
+                start: launch.start
+            )
+        }
         if launch.scenario != nil {
             let now = ISO8601Clock.parse("2026-10-17T01:30:00Z") ?? Date()
             return BusServices(
@@ -102,11 +133,29 @@ final class BusServices {
             client: HTTP.sessionClient(),
             clock: SystemClock(),
             fetchCache: TimetableFetchCache(),
-            store: .appSupport(),
+            store: store,
             scenario: nil,
             fixedNow: nil,
             start: launch.start
         )
+    }
+
+    var launchFacing: BoardFacing? {
+        switch start {
+        case .fujimidai:
+            return .fujimidai
+        case .mizonokuchi:
+            return .mizonokuchi
+        case nil:
+            switch scenario {
+            case .recordedApproach:
+                return .fujimidai
+            case .recordedDepartures:
+                return .mizonokuchi
+            default:
+                return nil
+            }
+        }
     }
 
     var approachLoader: ApproachBoardLoader {

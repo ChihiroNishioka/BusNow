@@ -146,9 +146,74 @@ final class ComplicationBoardTests: XCTestCase {
         for pair in zip(moments, moments.dropFirst()) {
             XCTAssertGreaterThanOrEqual(pair.1.date.timeIntervalSince(pair.0.date), ComplicationBoard.minimumEntrySpacing)
         }
+        XCTAssertEqual(moments.first?.content.headline, "11:08")
+        let handoff = try XCTUnwrap(moments.dropFirst().first)
+        XCTAssertEqual(handoff.content.headline, "11:20")
+        XCTAssertGreaterThanOrEqual(handoff.date.timeIntervalSince(now), ComplicationBoard.minimumEntrySpacing)
         XCTAssertEqual(ComplicationBoard.reloadInterval, 30 * 60)
         XCTAssertLessThanOrEqual(86_400 / ComplicationBoard.reloadInterval, 70)
         XCTAssertGreaterThanOrEqual(86_400 / ComplicationBoard.reloadInterval, 40)
+    }
+
+    func testApproachIsStaleAtExactlyFiveMinutes() throws {
+        let fetched = try date("2026-10-24T02:00:00Z")
+        let staleAt = fetched.addingTimeInterval(BoardPresentation.approachStaleAfter)
+        let bus = ApproachBus(
+            id: "edge",
+            operatorName: .tokyu,
+            route: "溝22",
+            destination: "溝口南行",
+            minutes: 3,
+            status: "3分待ち",
+            observedAt: fetched,
+            arrivesAt: fetched.addingTimeInterval(3 * 60)
+        )
+        let payload = ApproachPayload(fetchedAt: fetched, buses: [bus], sources: [
+            SourceStatus(operatorName: .tokyu, ok: true, message: nil, updatedAt: "11:00", observedAt: fetched),
+        ])
+        let presented = BoardPresentation.approach(payload, now: staleAt)
+        XCTAssertTrue(presented.rows.isEmpty)
+        XCTAssertEqual(presented.freshnessNote, BoardCopy.staleHidden)
+        let content = ComplicationBoard.content(facing: .fujimidai, approach: payload, departures: nil, now: staleAt)
+        XCTAssertTrue(content.stale)
+        XCTAssertEqual(content.headline, "古い")
+        XCTAssertFalse(content.showsTimer)
+        let moments = ComplicationBoard.timeline(facing: .fujimidai, approach: payload, departures: nil, now: fetched)
+        XCTAssertEqual(moments.last?.date, staleAt)
+        XCTAssertEqual(moments.last?.content.stale, true)
+    }
+
+    func testDepartureTimelineHandsOffAfterTheGrace() throws {
+        let now = try date("2026-10-24T02:19:00Z")
+        func trip(_ time: String, _ route: String) -> Departure {
+            Departure(
+                id: time,
+                operatorName: route == "溝22" ? .tokyu : .kawasaki,
+                route: route,
+                destination: "溝の口方面",
+                time: time,
+                date: "2026-10-24",
+                dayLabel: "土曜",
+                whenLabel: "今日"
+            )
+        }
+        let payload = DeparturePayload(
+            fetchedAt: now,
+            today: "2026-10-24",
+            serviceFinishedToday: false,
+            departures: [trip("11:25", "溝25"), trip("11:28", "溝22"), trip("11:35", "溝23")],
+            sources: [SourceStatus(operatorName: .kawasaki, ok: true, message: nil, updatedAt: nil)]
+        )
+        let moments = ComplicationBoard.timeline(facing: .mizonokuchi, approach: nil, departures: payload, now: now)
+        XCTAssertEqual(moments.first?.content.headline, "11:25")
+        let handoff = try XCTUnwrap(moments.dropFirst().first)
+        let printed = try XCTUnwrap(BoardPresentation.departureDate(payload.departures[0]))
+        XCTAssertGreaterThanOrEqual(handoff.date.timeIntervalSince(printed), BoardPresentation.departureGrace)
+        XCTAssertEqual(handoff.content.headline, "11:28")
+        XCTAssertFalse(handoff.content.detail.contains("溝25"))
+        for pair in zip(moments, moments.dropFirst()) {
+            XCTAssertGreaterThanOrEqual(pair.1.date.timeIntervalSince(pair.0.date), ComplicationBoard.minimumEntrySpacing)
+        }
     }
 
     func testPlaceholderDoesNotInventADeparture() {
@@ -200,6 +265,9 @@ final class RecordedFixtureTests: XCTestCase {
         XCTAssertTrue(source.hasPrefix("statusBar=11:19\n"))
         XCTAssertTrue(source.contains("時刻は作っていません"))
         XCTAssertTrue(source.contains("文字盤の写真ではない"))
+        XCTAssertTrue(source.contains("simctl status_bar override に対応していない"))
+        XCTAssertTrue(source.contains("departures-finished"))
+        XCTAssertTrue(source.contains("approach-partial"))
     }
 }
 

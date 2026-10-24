@@ -97,12 +97,19 @@ public enum ComplicationBoard {
             }
         case .mizonokuchi:
             guard let departures else { return moments }
+            let drops = departures.departures.compactMap { departure -> Date? in
+                BoardPresentation.departureDate(departure)?.addingTimeInterval(BoardPresentation.departureGrace)
+            }.sorted()
             var last = now
-            for departure in departures.departures {
-                guard let when = instant(of: departure), when.timeIntervalSince(last) >= minimumEntrySpacing else { continue }
+            for drop in drops {
+                if moments.count >= 8 { break }
+                var when = drop
+                if when <= last { continue }
+                if when.timeIntervalSince(last) < minimumEntrySpacing {
+                    when = last.addingTimeInterval(minimumEntrySpacing)
+                }
                 moments.append(Moment(date: when, content: content(facing: facing, approach: approach, departures: departures, now: when)))
                 last = when
-                if moments.count >= 8 { break }
             }
         }
         return moments
@@ -124,7 +131,7 @@ public enum ComplicationBoard {
     public static func freshness(fetchedAt: Date, now: Date) -> String {
         let clock = "取得 \(TokyoCalendar.formatClock(fetchedAt))"
         let age = now.timeIntervalSince(fetchedAt)
-        if age > BoardPresentation.approachStaleAfter {
+        if age >= BoardPresentation.approachStaleAfter {
             return "古い情報 · \(clock)"
         }
         if age >= 60 {
@@ -138,7 +145,7 @@ public enum ComplicationBoard {
             return failed(.fujimidai, freshness: "取得できていません")
         }
         let freshness = freshness(fetchedAt: payload.fetchedAt, now: now)
-        if now.timeIntervalSince(payload.fetchedAt) > BoardPresentation.approachStaleAfter {
+        if now.timeIntervalSince(payload.fetchedAt) >= BoardPresentation.approachStaleAfter {
             return ComplicationContent(
                 facing: .fujimidai,
                 headline: "古い",
@@ -212,8 +219,8 @@ public enum ComplicationBoard {
             freshness += " · ダイヤ未確認"
         }
         let upcoming = payload.departures.filter { departure in
-            guard let when = instant(of: departure) else { return true }
-            return when.timeIntervalSince(now) > -60
+            guard let when = BoardPresentation.departureDate(departure) else { return true }
+            return when.timeIntervalSince(now) > -BoardPresentation.departureGrace
         }
         guard let next = upcoming.first else {
             let headline = payload.serviceFinishedToday ? "終了" : "なし"
@@ -257,9 +264,4 @@ public enum ComplicationBoard {
         )
     }
 
-    private static func instant(of departure: Departure) -> Date? {
-        let parts = departure.time.split(separator: ":")
-        guard parts.count == 2, let hour = Int(parts[0]), let minute = Int(parts[1]) else { return nil }
-        return TokyoCalendar.date(ymd: departure.date, hour: hour, minute: minute)
-    }
 }

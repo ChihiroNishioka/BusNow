@@ -73,6 +73,18 @@ struct ApproachBoardView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 24)
                     .accessibilityIdentifier("board.hero")
+                if hero == BoardCopy.departuresFailed {
+                    Button(BoardCopy.retry) {
+                        model.refresh()
+                    }
+                    .font(Theme.maru(17, relativeTo: .body))
+                    .foregroundStyle(Theme.cream)
+                    .padding(.horizontal, 18)
+                    .frame(minHeight: 44)
+                    .background(Theme.ink, in: Capsule())
+                    .padding(.top, 16)
+                    .accessibilityIdentifier("board.retry")
+                }
             } else if let freshness = presented.freshnessNote {
                 Text(freshness)
                     .font(Theme.maru(28, relativeTo: .title2))

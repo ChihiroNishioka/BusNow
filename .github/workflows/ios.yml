@@ -250,10 +250,16 @@ jobs:
             -destination "platform=watchOS Simulator,id=${{ steps.sim.outputs.watch }}" \
             -derivedDataPath ios/BusNowApp/DerivedDataWatch \
             -resultBundlePath "$GITHUB_WORKSPACE/WatchAppResults.xcresult" \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=YES \
+            CODE_SIGNING_ALLOWED=YES \
+            DEVELOPMENT_TEAM="" \
             | tee watch-xcodebuild.log
+          APP="$(find ios/BusNowApp/DerivedDataWatch -path '*watchsimulator*' -name 'BusNowWatch.app' -type d | head -1)"
+          echo "app=$APP"
+          test -d "$APP/PlugIns/BusNowComplication.appex"
+          codesign -d --entitlements :- "$APP" | grep -q "group.app.busnow.ios"
+          codesign -d --entitlements :- "$APP/PlugIns/BusNowComplication.appex" | grep -q "group.app.busnow.ios"
 
       - name: Watch screenshots
         if: success()

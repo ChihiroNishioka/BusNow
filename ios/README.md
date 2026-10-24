@@ -4,7 +4,7 @@ iPhone 単体で動く SwiftUI アプリです。接近と時刻表は端末か�
 
 App Store への公開用には作っていません。東急バスの時刻表サイトは自動取得を禁止しており、ガイドライン 4.2 / 5.2.2 の観点でもストア申請は見送りです。想定は本人のシミュレータ確認と、必要なら TestFlight の個人利用です。署名チームは入れていません。
 
-シミュレータの CI は `CODE_SIGNING_ALLOWED=NO` と空の Development Team でビルドします。実機や TestFlight に載せるときは、Xcode で自分の Apple ID の Team を選び、署名をオンにしてください。このリポジトリは端末向けの署名設定を入れていません。
+iPhone の CI は `CODE_SIGNING_ALLOWED=NO` と空の Development Team でビルドします。Watch の CI はチームを空のまま、アドホック署名（`CODE_SIGN_IDENTITY=-`）でアプリとコンプリケーション拡張を署名し、拡張を埋め込んで App Group を付けます。実機や TestFlight に載せるときは、Xcode で自分の Apple ID の Team を選び、署名をオンにしてください。このリポジトリは端末向けの証明書を入れていません。
 
 ## 構成
 
@@ -61,15 +61,15 @@ GitHub Actions（`.github/workflows/ios.yml`）は ubuntu-24.04 で `swift test`
 
 取得・カウントダウン・鮮度・向きの判定は `BusNowCore` に置きます。Foundation だけなので iOS 17 / watchOS 10 / macOS 13 から同じパッケージを使います。画面とコンプリケーションは `BusNowApp/BusNowWatch` と `BusNowApp/BusNowComplication` です。Watch は iPhone を介さず、同じ URL を自分で取ります。
 
-向きの既定は自動です。日本時間の午前（0時から11時）は富士見台発、正午以降は溝の口駅南口発です。Watch の「向き」で自動・富士見台・溝の口を保存します。コンプリケーションは同じキーを App Group（`group.app.busnow.ios`）から読み、グループが無い署名なしビルドでは自動のままです。
+向きの既定は自動です。日本時間の午前（0時から11時）は富士見台発、正午以降は溝の口駅南口発です。Watch の「向き」で自動・富士見台・溝の口を App Group（`group.app.busnow.ios`、キー `busnow.facingMode`）に保存し、コンプリケーション拡張も同じグループを読みます。見出しと「向き」は1行に収まらないときは縦に積むので、最大の Dynamic Type でも重なりません。溝の口の見出しは黒地で `#7EB8DC`（約 9.8:1）です。
 
-コンプリケーション拡張はスキーム `BusNowWatch` のテストビルドに含まれます。署名なしでは appex をアプリへ埋め込めないため、コピーフェーズは外してあります。文字盤への配置は実機の署名が要ります。
+コンプリケーション拡張は `BusNowWatch.app/PlugIns/BusNowComplication.appex` に埋め込みます。シミュレータはアドホック署名で、CI が埋め込みと `group.app.busnow.ios` を確認します。文字盤への配置は実機の署名が要ります。
 
-コンプリケーションは `accessoryCircular` と `accessoryInline` です。接近の残り時間は `Text(date, style: .timer)` で、タイムラインを毎秒作り直さずに進みます。タイムラインの再要求は 30 分間隔（1日 48 回の要求で、WidgetKit の目安 40〜70 回の内側）です。取得から 5 分を超えた接近は「古い」と出します。時刻表が同梱スナップショットのときは「ダイヤ未確認」も出します。架空のバスは出しません。取れなければ失敗、前回の保存があればその鮮度付きです。
+コンプリケーションは `accessoryCircular` と `accessoryInline` です。接近の残り時間は `Text(date, style: .timer)` で、タイムラインを毎秒作り直さずに進みます。タイムラインの再要求は 30 分間隔（1日 48 回の要求で、WidgetKit の目安 40〜70 回の内側）です。取得から 5 分で接近は「古い」になります。円形の短い表示は「ダイヤ未確認」を時刻より先に出します。時刻表の行は発車時刻の1分後に次の便へ渡します。架空のバスは出しません。取れなければ失敗、前回の保存があればその鮮度付きです。
 
-フォアグラウンド中は 30 秒ごとに取り直します。バックグラウンドは `WKApplicationRefresh` で、次の希望時刻は 30 分後です。バックグラウンドとコンプリケーションの HTTP は 8 秒で打ち切ります（実機で測った値ではありません）。
+フォアグラウンドの接近は 30 秒ごとに取り直します。時刻表は表示中の便が発車の1分後を過ぎたら取り直します。腕を上げて前面に戻ったときもすぐ取り直し、前面でないときはポーリングを止めて次のバックグラウンド更新を予約します。バックグラウンドは `WKApplicationRefresh` で、次の希望時刻は 30 分後です。バックグラウンドとコンプリケーションの HTTP は 8 秒で打ち切ります（実機で測った値ではありません）。
 
-スクリーンショット用の `-busnow-scenario recorded-approach|recorded-departures|recorded-complications` は、`BusNowApp/RecordedFixtures/` に保存した実取得だけを出します。本番の起動引数が無い経路では使いません。中身と取得時刻は `SOURCE.txt` に書いてあります。コンプリケーションの画像は文字盤の写真ではなく、同じビューを録画時刻で描いたものです。
+スクリーンショット用の `-busnow-scenario recorded-approach|recorded-departures|recorded-complications` は、`BusNowApp/RecordedFixtures/` に保存した実取得だけを出します。本番の起動引数が無い経路では使いません。中身と取得時刻は `SOURCE.txt` に書いてあります。コンプリケーションの画像は文字盤の写真ではなく、同じビューを録画時刻で描いたものです。watchOS シミュレータはステータスバー時刻の上書きに対応していないので、Watch のステータスバーはランナーの時計のままです。`departures-finished` と `approach-partial` の iPhone 画像は、終了時と片方失敗の画面を見るための架空プレビューです。
 
 ## 範囲外
 

@@ -25,7 +25,7 @@ struct DepartureBoardView: View {
                     .padding(.top, 36)
                     .accessibilityIdentifier("board.loading")
             } else if let payload = model.payload {
-                let presented = BoardPresentation.departures(payload)
+                let presented = BoardPresentation.departures(payload, now: model.now)
                 if presented.finishedBanner {
                     Text(BoardCopy.serviceFinished)
                         .font(Theme.maru(28, relativeTo: .title2))

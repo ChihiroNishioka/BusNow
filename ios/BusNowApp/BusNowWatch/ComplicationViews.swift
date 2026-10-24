@@ -45,13 +45,16 @@ struct CircularComplicationView: View {
     }
 
     private var shortFreshness: String {
+        if content.timetableUnverified {
+            return "未確認"
+        }
+        if content.stale {
+            return "古い"
+        }
         let head = content.freshness.split(separator: "·").first
             .map { $0.trimmingCharacters(in: .whitespaces) } ?? content.freshness
         if head.hasPrefix("取得 ") {
             return String(head.dropFirst("取得 ".count))
-        }
-        if head.hasPrefix("古い") {
-            return "古い"
         }
         return head
     }

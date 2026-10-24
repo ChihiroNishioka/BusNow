@@ -118,12 +118,14 @@
 		B20000000000000000000028 /* ComplicationGallery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationGallery.swift; sourceTree = "<group>"; };
 		B20000000000000000000029 /* ComplicationViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationViews.swift; sourceTree = "<group>"; };
 		B2000000000000000000002D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B2000000000000000000002E /* BusNowWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BusNowWatch.entitlements; sourceTree = "<group>"; };
 		B2000000000000000000002A /* RecordedFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordedFixtures.swift; sourceTree = "<group>"; };
 		B2000000000000000000002B /* recorded-approach.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "recorded-approach.json"; sourceTree = "<group>"; };
 		B2000000000000000000002C /* recorded-departures.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "recorded-departures.json"; sourceTree = "<group>"; };
 		B20000000000000000000031 /* ComplicationBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationBundle.swift; sourceTree = "<group>"; };
 		B20000000000000000000032 /* Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
 		B20000000000000000000033 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B20000000000000000000034 /* BusNowComplication.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BusNowComplication.entitlements; sourceTree = "<group>"; };
 		B20000000000000000000041 /* BusNowWatchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BusNowWatchTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -238,6 +240,7 @@
 				B20000000000000000000028 /* ComplicationGallery.swift */,
 				B20000000000000000000029 /* ComplicationViews.swift */,
 				B2000000000000000000002D /* Info.plist */,
+				B2000000000000000000002E /* BusNowWatch.entitlements */,
 			);
 			path = BusNowWatch;
 			sourceTree = "<group>";
@@ -256,6 +259,7 @@
 				B20000000000000000000031 /* ComplicationBundle.swift */,
 				B20000000000000000000032 /* Provider.swift */,
 				B20000000000000000000033 /* Info.plist */,
+				B20000000000000000000034 /* BusNowComplication.entitlements */,
 			);
 			path = BusNowComplication;
 			sourceTree = "<group>";
@@ -320,6 +324,7 @@
 				E20000000000000000000001 /* Sources */,
 				E20000000000000000000002 /* Frameworks */,
 				E20000000000000000000003 /* Resources */,
+				E20000000000000000000004 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
@@ -704,10 +709,11 @@
 		P20000000000000000000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_ENTITLEMENTS = BusNowWatch/BusNowWatch.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = NO;
@@ -735,10 +741,11 @@
 		P20000000000000000000002 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_ENTITLEMENTS = BusNowWatch/BusNowWatch.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = NO;
@@ -814,10 +821,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_ENTITLEMENTS = BusNowComplication/BusNowComplication.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
@@ -845,10 +853,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_ENTITLEMENTS = BusNowComplication/BusNowComplication.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
-				CODE_SIGNING_ALLOWED = NO;
-				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;

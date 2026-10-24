@@ -2,9 +2,12 @@ import SwiftUI
 import BusNowCore
 
 struct WatchApproachView: View {
+    let services: BusServices
     @State private var model: ApproachModel
+    @Environment(\.scenePhase) private var scenePhase
 
     init(services: BusServices) {
+        self.services = services
         _model = State(initialValue: ApproachModel(services: services))
     }
 
@@ -20,7 +23,7 @@ struct WatchApproachView: View {
             .padding(.horizontal, 4)
         }
         .accessibilityIdentifier("approach.screen")
-        .task { await model.activate() }
+        .task(id: scenePhase) { await followScene() }
         .onDisappear { model.stop() }
     }
 
@@ -39,6 +42,9 @@ struct WatchApproachView: View {
                     .font(WatchTheme.text(16, relativeTo: .body))
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("board.hero")
+                if hero == BoardCopy.departuresFailed {
+                    retry
+                }
             }
             ForEach(presented.rows, id: \.bus.id) { row in
                 approachRow(row)
@@ -51,10 +57,19 @@ struct WatchApproachView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             freshness(ComplicationBoard.freshness(fetchedAt: payload.fetchedAt, now: model.now))
-            if presented.freshnessNote == BoardCopy.staleHidden || (model.failed && model.payload == nil) {
+            if presented.freshnessNote == BoardCopy.staleHidden {
                 retry
             }
         }
+    }
+
+    private func followScene() async {
+        if scenePhase != .active, services.scenario == nil {
+            model.stop()
+            WatchRefresh.schedule()
+            return
+        }
+        await model.activate()
     }
 
     private func approachRow(_ row: ApproachRow) -> some View {

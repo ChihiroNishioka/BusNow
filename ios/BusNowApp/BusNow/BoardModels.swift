@@ -261,12 +261,10 @@ final class DepartureModel {
             refreshError = nil
             loading = false
             #if os(watchOS)
-            if services.scenario == nil {
-                services.store.saveDepartures(next)
-                WidgetCenter.shared.reloadTimelines(ofKind: ComplicationBoard.kind)
-                startClockIfNeeded()
-            }
+            services.store.saveDepartures(next)
+            WidgetCenter.shared.reloadTimelines(ofKind: ComplicationBoard.kind)
             #endif
+            startClockIfNeeded()
         } catch is CancellationError {
             return
         } catch {
@@ -289,10 +287,28 @@ final class DepartureModel {
         guard clockTask == nil else { return }
         clockTask = Task { @MainActor in
             while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 30_000_000_000)
+                let wait = nextDropWait()
+                try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
                 if Task.isCancelled { return }
                 now = services.clock.now()
+                guard let payload else { continue }
+                let visible = BoardPresentation.departures(payload, now: now).departures.count
+                if visible < payload.departures.count {
+                    await load(useCache: false)
+                }
             }
         }
+    }
+
+    private func nextDropWait() -> TimeInterval {
+        let instant = services.clock.now()
+        guard let payload else { return 30 }
+        let soonest = payload.departures.compactMap { departure -> TimeInterval? in
+            guard let when = BoardPresentation.departureDate(departure) else { return nil }
+            return when.addingTimeInterval(BoardPresentation.departureGrace).timeIntervalSince(instant)
+        }.min()
+        guard let soonest else { return 30 }
+        if soonest <= 0 { return 1 }
+        return min(30, max(1, soonest))
     }
 }

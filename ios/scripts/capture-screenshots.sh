@@ -42,7 +42,7 @@ xcrun simctl status_bar "$UDID" override \
   --batteryState charged \
   --batteryLevel 100 \
   --cellularMode active \
-  --wifiBars 3 || true
+  --wifiBars 3
 
 capture() {
   local name="$1"
@@ -57,4 +57,6 @@ capture() {
 capture home -busnow-scenario home
 capture approach -busnow-scenario recorded-approach -busnow-start approach
 capture departures -busnow-scenario recorded-departures -busnow-start departures
+capture departures-finished -busnow-scenario departures-finished -busnow-start departures
+capture approach-partial -busnow-scenario approach-partial -busnow-start approach
 cp "$ROOT/BusNowApp/RecordedFixtures/SOURCE.txt" "$OUT/SOURCE.txt"

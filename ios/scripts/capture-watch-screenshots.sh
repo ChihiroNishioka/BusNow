@@ -36,8 +36,14 @@ STATUS_TIME=""
 if [[ -f "$ROOT/BusNowApp/RecordedFixtures/SOURCE.txt" ]]; then
   STATUS_TIME="$(grep -E '^statusBar=' "$ROOT/BusNowApp/RecordedFixtures/SOURCE.txt" | head -1 | cut -d= -f2- || true)"
 fi
+STATUS_RESULT="unsupported"
 if [[ -n "$STATUS_TIME" ]]; then
-  xcrun simctl status_bar "$UDID" override --time "$STATUS_TIME" || true
+  if xcrun simctl status_bar "$UDID" override --time "$STATUS_TIME"; then
+    STATUS_RESULT="overridden:${STATUS_TIME}"
+  else
+    STATUS_RESULT="unsupported"
+    echo "watch status bar override is unsupported; the simulator clock stays as the runner clock" >&2
+  fi
 fi
 
 capture() {
@@ -55,4 +61,6 @@ capture watch-mizonokuchi -busnow-scenario recorded-departures -busnow-start dep
 capture watch-complications -busnow-scenario recorded-complications
 if [[ -f "$ROOT/BusNowApp/RecordedFixtures/SOURCE.txt" ]]; then
   cp "$ROOT/BusNowApp/RecordedFixtures/SOURCE.txt" "$OUT/SOURCE.txt"
+  printf '\nwatchStatusBar=%s\n' "$STATUS_RESULT" >> "$OUT/SOURCE.txt"
+  printf '%s\n' "Watch のステータスバーはランナーの時計のままです。アプリ内の時刻だけを取得時刻に固定しています。" >> "$OUT/SOURCE.txt"
 fi

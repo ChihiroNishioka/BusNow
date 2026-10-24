@@ -15,6 +15,8 @@ clock=2026-10-24 11:19 JST
 - 東急バスの公式時刻表（transfer.navitime.biz）はこの取得でも HTTP 403 だった。11:28 溝22 は同梱スナップショット（revision 2025-07-01）の土曜ダイヤで、画面には「確認できていません」と出る。revision は変えていない。
 
 スクリーンショット
-- iPhone と Watch の画面は、この JSON を -busnow-scenario recorded-approach / recorded-departures で表示し、アプリ内の現在時刻を取得時刻に固定して撮る。
+- iPhone の home / approach / departures と、Watch の2画面は、この JSON を -busnow-scenario recorded-approach / recorded-departures で表示し、アプリ内の現在時刻を取得時刻に固定して撮る。iPhone の statusBar=11:19 は iOS シミュレータのステータスバーを取得時刻に合わせたもの。
+- watchOS シミュレータは simctl status_bar override に対応していない。上書きは失敗し、失敗しても撮影は続ける。Watch のステータスバーはランナーの時計（UTC）のままで、取得時刻 11:19 には合わせられない。アプリ内の時刻だけを取得時刻に固定している。
 - watch-complications は文字盤の写真ではない。同じ取得結果で accessoryCircular と accessoryInline のビューを、タイマーを取得時刻で止めてアプリ内に並べたもの（recorded-complications）。本番のコンプリケーションは Text の timer スタイルで進む。
+- departures-finished と approach-partial はプレビュー用の架空データ（-busnow-scenario departures-finished / approach-partial）で、2026-10-24 11:19 の取得ではない。finished は運行終了と翌朝の便、partial は片方の事業者だけ失敗した状態を見るための画像。時刻は作ったものです。
 - 架空の時刻（プレビューの 10:41 など）はこの JSON に含まれない。

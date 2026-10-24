@@ -361,7 +361,7 @@ final class FreshnessTests: XCTestCase {
             SourceStatus(operatorName: .kawasaki, ok: false, message: "公式ページから取れませんでした", updatedAt: nil),
         ])
         let presented = BoardPresentation.approach(payload, now: payload.fetchedAt)
-        XCTAssertNil(presented.hero)
+        XCTAssertEqual(presented.hero, BoardCopy.departuresFailed)
         XCTAssertTrue(presented.rows.isEmpty)
     }
 
@@ -370,11 +370,11 @@ final class FreshnessTests: XCTestCase {
             SourceStatus(operatorName: .tokyu, ok: false, message: "x", updatedAt: nil),
             SourceStatus(operatorName: .kawasaki, ok: false, message: "y", updatedAt: nil),
         ])
-        XCTAssertEqual(BoardPresentation.departures(failed).hero, BoardCopy.departuresFailed)
+        XCTAssertEqual(BoardPresentation.departures(failed, now: failed.fetchedAt).hero, BoardCopy.departuresFailed)
         let empty = DeparturePayload(fetchedAt: Date(), today: "2026-10-17", serviceFinishedToday: false, departures: [], sources: [
             SourceStatus(operatorName: .tokyu, ok: true, message: nil, updatedAt: nil),
         ])
-        XCTAssertEqual(BoardPresentation.departures(empty).hero, BoardCopy.noMoreDepartures)
+        XCTAssertEqual(BoardPresentation.departures(empty, now: empty.fetchedAt).hero, BoardCopy.noMoreDepartures)
     }
 
     func testReadableError() {

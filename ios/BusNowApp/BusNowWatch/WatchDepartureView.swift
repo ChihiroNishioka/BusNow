@@ -2,9 +2,12 @@ import SwiftUI
 import BusNowCore
 
 struct WatchDepartureView: View {
+    let services: BusServices
     @State private var model: DepartureModel
+    @Environment(\.scenePhase) private var scenePhase
 
     init(services: BusServices) {
+        self.services = services
         _model = State(initialValue: DepartureModel(services: services))
     }
 
@@ -20,7 +23,7 @@ struct WatchDepartureView: View {
             .padding(.horizontal, 4)
         }
         .accessibilityIdentifier("departure.screen")
-        .task { await model.load(useCache: true) }
+        .task(id: scenePhase) { await followScene() }
         .onDisappear { model.stop() }
     }
 
@@ -31,7 +34,7 @@ struct WatchDepartureView: View {
                 .font(WatchTheme.text(16, relativeTo: .body))
                 .accessibilityIdentifier("board.loading")
         } else if let payload = model.payload {
-            let presented = BoardPresentation.departures(payload)
+            let presented = BoardPresentation.departures(payload, now: model.now)
             if presented.finishedBanner {
                 Text(BoardCopy.serviceFinished)
                     .font(WatchTheme.text(15, relativeTo: .headline))
@@ -62,6 +65,15 @@ struct WatchDepartureView: View {
             }
             freshness(ComplicationBoard.freshness(fetchedAt: payload.fetchedAt, now: model.now))
         }
+    }
+
+    private func followScene() async {
+        if scenePhase != .active, services.scenario == nil {
+            model.stop()
+            WatchRefresh.schedule()
+            return
+        }
+        await model.load(useCache: true)
     }
 
     private func departureRow(_ departure: Departure) -> some View {

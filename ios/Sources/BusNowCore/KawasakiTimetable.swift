@@ -1,12 +1,28 @@
 import Foundation
 
+public struct KawasakiFetchFailure: Equatable, Sendable {
+    public var route: String
+    public var day: String
+    public var url: String
+    public var status: String
+
+    public init(route: String, day: String, url: String, status: String) {
+        self.route = route
+        self.day = day
+        self.url = url
+        self.status = status
+    }
+}
+
 public struct KawasakiDepartures: Equatable, Sendable {
     public var trips: [ScheduledTrip]
     public var note: String?
+    public var failures: [KawasakiFetchFailure]
 
-    public init(trips: [ScheduledTrip], note: String?) {
+    public init(trips: [ScheduledTrip], note: String?, failures: [KawasakiFetchFailure] = []) {
         self.trips = trips
         self.note = note
+        self.failures = failures
     }
 }
 
@@ -60,7 +76,7 @@ public enum KawasakiTimetable {
             let fetched = try await fetch(client, kinds: kinds)
             if Task.isCancelled { throw CancellationError() }
             let merged = store.mergeKawasaki(fetched.trips, at: now)
-            let value = KawasakiDepartures(trips: merged, note: fetched.note)
+            let value = KawasakiDepartures(trips: merged, note: fetched.note, failures: fetched.failures)
             cache.setKawasaki(key: key, value: value, at: now)
             return value
         } catch {
@@ -118,38 +134,62 @@ public enum KawasakiTimetable {
             }
         }
         if jobs.isEmpty {
-            return FetchedTimetable(trips: [], note: nil)
+            return FetchedTimetable(trips: [], note: nil, failures: [])
         }
-        return try await withThrowingTaskGroup(of: Result<[ScheduledTrip], Error>.self) { group in
+        return try await withThrowingTaskGroup(of: OneFetch.self) { group in
             for job in jobs {
                 group.addTask {
+                    let day = DayLabel.text(job.1)
                     do {
-                        return .success(try await loadOne(client, link: job.0, dayKind: job.1, route: job.2, destination: job.3))
+                        let trips = try await loadOne(client, link: job.0, dayKind: job.1, route: job.2, destination: job.3)
+                        return OneFetch(trips: trips, failure: nil)
+                    } catch is CancellationError {
+                        throw CancellationError()
+                    } catch let error as KawasakiFetchError {
+                        return OneFetch(
+                            trips: [],
+                            failure: KawasakiFetchFailure(route: job.2, day: day, url: error.url, status: error.status)
+                        )
                     } catch {
-                        return .failure(error)
+                        if BoardClock.isCancellation(error) { throw error }
+                        return OneFetch(
+                            trips: [],
+                            failure: KawasakiFetchFailure(
+                                route: job.2,
+                                day: day,
+                                url: fileURL.absoluteString,
+                                status: (error as? BusTransportError)?.message ?? String(describing: error)
+                            )
+                        )
                     }
                 }
             }
             var trips: [ScheduledTrip] = []
-            var failures = 0
-            var firstError: Error?
+            var failures: [KawasakiFetchFailure] = []
             for try await result in group {
                 if Task.isCancelled { throw CancellationError() }
-                switch result {
-                case .success(let part):
-                    trips.append(contentsOf: part)
-                case .failure(let error):
-                    if BoardClock.isCancellation(error) { throw error }
-                    failures += 1
-                    if firstError == nil { firstError = error }
+                trips.append(contentsOf: result.trips)
+                if let failure = result.failure {
+                    failures.append(failure)
                 }
             }
             if trips.isEmpty {
-                throw firstError ?? BusTransportError("川崎市バスの時刻表の形が分かりません")
+                let summary = failures.map { "\($0.route) \($0.day) \($0.status)" }.joined(separator: " / ")
+                throw BusTransportError(summary.isEmpty ? "川崎市バスの時刻表の形が分かりません" : summary)
             }
-            let note = failures > 0 ? "一部の路線の時刻表を取れませんでした" : nil
-            return FetchedTimetable(trips: trips, note: note)
+            failures.sort { lhs, rhs in
+                if lhs.route != rhs.route { return lhs.route < rhs.route }
+                if lhs.day != rhs.day { return lhs.day < rhs.day }
+                return lhs.url < rhs.url
+            }
+            return FetchedTimetable(trips: trips, note: failureNote(failures), failures: failures)
         }
+    }
+
+    private static func failureNote(_ failures: [KawasakiFetchFailure]) -> String? {
+        guard !failures.isEmpty else { return nil }
+        let lines = failures.map { "\($0.route) \($0.day) \($0.url) \($0.status)" }
+        return (["一部の路線の時刻表を取れませんでした"] + lines).joined(separator: "\n")
     }
 
     private static func loadOne(
@@ -162,23 +202,34 @@ public enum KawasakiTimetable {
         let pieces = link.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: false)
         let date = pieces.first.map(String.init) ?? ""
         let name = pieces.count > 1 ? String(pieces[1]) : ""
-        let meta = try await HTTP.fetchFormJSON(
-            client,
-            fileURL,
-            fields: [("type", "0"), ("date", date), ("name", name)],
-            as: FileResponse.self
-        )
+        let requestURL = "\(fileURL.absoluteString)?date=\(date)&name=\(name)"
+        let meta: FileResponse
+        do {
+            meta = try await HTTP.fetchFormJSON(
+                client,
+                fileURL,
+                fields: [("type", "0"), ("date", date), ("name", name)],
+                as: FileResponse.self
+            )
+        } catch {
+            throw KawasakiFetchError(url: requestURL, status: httpStatus(error))
+        }
         if meta.filePath == nil || meta.filePath?.isEmpty == true || meta.errorFlg == "1" {
-            throw BusTransportError("時刻表ファイルがありません: \(name)")
+            throw KawasakiFetchError(url: requestURL, status: "ファイルなし")
         }
         let path = meta.filePath ?? ""
         guard let url = URL(string: "https://kcbn.bus-navigation.jp/wgsys\(path)") else {
-            throw BusTransportError("時刻表ファイルがありません: \(name)")
+            throw KawasakiFetchError(url: requestURL, status: "ファイルなし")
         }
-        let html = try await HTTP.fetchText(client, url)
+        let html: String
+        do {
+            html = try await HTTP.fetchText(client, url)
+        } catch {
+            throw KawasakiFetchError(url: url.absoluteString, status: httpStatus(error))
+        }
         let times = KawasakiTimetableParser.parse(html)
         if times.isEmpty {
-            throw BusTransportError("川崎市バスの時刻表の形が分かりません")
+            throw KawasakiFetchError(url: url.absoluteString, status: "空の時刻表")
         }
         return times.map { time in
             ScheduledTrip(
@@ -192,9 +243,30 @@ public enum KawasakiTimetable {
     }
 }
 
+private struct KawasakiFetchError: Error {
+    var url: String
+    var status: String
+}
+
+private struct OneFetch: Sendable {
+    var trips: [ScheduledTrip]
+    var failure: KawasakiFetchFailure?
+}
+
 private struct FetchedTimetable: Sendable {
     var trips: [ScheduledTrip]
     var note: String?
+    var failures: [KawasakiFetchFailure]
+}
+
+private func httpStatus(_ error: Error) -> String {
+    let message = (error as? BusTransportError)?.message ?? String(describing: error)
+    if let match = firstMatch(message, pattern: "HTTP (\\d+)"),
+       let code = match.groups.dropFirst().first ?? nil,
+       !code.isEmpty {
+        return "HTTP \(code)"
+    }
+    return message
 }
 
 private struct IndexResponse: Decodable {

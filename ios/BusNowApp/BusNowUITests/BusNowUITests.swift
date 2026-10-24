@@ -87,6 +87,10 @@ final class BusNowUITests: XCTestCase {
         XCTAssertEqual(warns.count, 2)
         XCTAssertFalse(app.staticTexts["接近しているバスはありません"].exists)
         XCTAssertEqual(app.descendants(matching: .any).matching(identifier: "approach.row").count, 0)
+        let hero = marked(app, "board.hero")
+        XCTAssertTrue(hero.waitForExistence(timeout: 4))
+        XCTAssertEqual(hero.label, "うまく取れませんでした")
+        XCTAssertTrue(app.buttons["board.retry"].exists)
         attach(app, name: "approach-down")
     }
 

@@ -1,6 +1,9 @@
 import Foundation
 import Observation
 import BusNowCore
+#if os(watchOS)
+import WidgetKit
+#endif
 
 @MainActor
 @Observable
@@ -61,6 +64,25 @@ final class ApproachModel {
 
     func reload(useNetwork: Bool) async {
         if let scenario = services.scenario {
+            if scenario == .recordedApproach {
+                refreshError = nil
+                if let recorded = RecordedBoard.approach() {
+                    payload = recorded
+                    now = recorded.fetchedAt
+                    loading = false
+                    failed = false
+                    failureDetail = nil
+                } else {
+                    payload = nil
+                    loading = false
+                    failed = true
+                    failureDetail = "録画した接近情報がありません"
+                }
+                return
+            }
+            if scenario.isRecorded {
+                return
+            }
             let instant = services.fixedNow ?? now
             now = instant
             refreshError = nil
@@ -117,6 +139,11 @@ final class ApproachModel {
             let snapshot = next
             Task.detached { store.saveApproach(snapshot) }
         }
+        #if os(watchOS)
+        if services.scenario == nil {
+            WidgetCenter.shared.reloadTimelines(ofKind: ComplicationBoard.kind)
+        }
+        #endif
     }
 
     func stop() {
@@ -160,13 +187,16 @@ final class DepartureModel {
     var payload: DeparturePayload?
     var loading = true
     var refreshError: String?
+    var now: Date
     private var generation = 0
     private var fetchTask: Task<DeparturePayload, Error>?
     private var userTask: Task<Void, Never>?
+    private var clockTask: Task<Void, Never>?
     private let services: BusServices
 
     init(services: BusServices) {
         self.services = services
+        self.now = services.fixedNow ?? services.clock.now()
     }
 
     func refresh() {
@@ -176,6 +206,32 @@ final class DepartureModel {
 
     func load(useCache: Bool) async {
         if let scenario = services.scenario {
+            if scenario == .recordedDepartures {
+                if let recorded = RecordedBoard.departures() {
+                    payload = recorded
+                    now = recorded.fetchedAt
+                    loading = false
+                    refreshError = nil
+                } else {
+                    payload = DeparturePayload(
+                        fetchedAt: services.clock.now(),
+                        today: "",
+                        serviceFinishedToday: false,
+                        departures: [],
+                        sources: [
+                            SourceStatus(operatorName: .tokyu, ok: false, message: "録画した時刻表がありません", updatedAt: nil),
+                            SourceStatus(operatorName: .kawasaki, ok: false, message: "録画した時刻表がありません", updatedAt: nil),
+                        ]
+                    )
+                    loading = false
+                    refreshError = nil
+                }
+                return
+            }
+            if scenario.isRecorded {
+                loading = false
+                return
+            }
             let instant = services.fixedNow ?? services.clock.now()
             payload = PreviewBoard.departures(now: instant, scenario: scenario)
             loading = false
@@ -201,8 +257,14 @@ final class DepartureModel {
                 return
             }
             payload = next
+            now = services.clock.now()
             refreshError = nil
             loading = false
+            #if os(watchOS)
+            services.store.saveDepartures(next)
+            WidgetCenter.shared.reloadTimelines(ofKind: ComplicationBoard.kind)
+            #endif
+            startClockIfNeeded()
         } catch is CancellationError {
             return
         } catch {
@@ -217,5 +279,36 @@ final class DepartureModel {
     func stop() {
         fetchTask?.cancel()
         userTask?.cancel()
+        clockTask?.cancel()
+        clockTask = nil
+    }
+
+    private func startClockIfNeeded() {
+        guard clockTask == nil else { return }
+        clockTask = Task { @MainActor in
+            while !Task.isCancelled {
+                let wait = nextDropWait()
+                try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
+                if Task.isCancelled { return }
+                now = services.clock.now()
+                guard let payload else { continue }
+                let visible = BoardPresentation.departures(payload, now: now).departures.count
+                if visible < payload.departures.count {
+                    await load(useCache: false)
+                }
+            }
+        }
+    }
+
+    private func nextDropWait() -> TimeInterval {
+        let instant = services.clock.now()
+        guard let payload else { return 30 }
+        let soonest = payload.departures.compactMap { departure -> TimeInterval? in
+            guard let when = BoardPresentation.departureDate(departure) else { return nil }
+            return when.addingTimeInterval(BoardPresentation.departureGrace).timeIntervalSince(instant)
+        }.min()
+        guard let soonest else { return 30 }
+        if soonest <= 0 { return 1 }
+        return min(30, max(1, soonest))
     }
 }

@@ -131,7 +131,7 @@ final class TimetableRegressionTests: XCTestCase {
                 SourceStatus(operatorName: .kawasaki, ok: false, message: "公式ページから取れませんでした", updatedAt: nil),
             ]
         )
-        XCTAssertEqual(BoardPresentation.departures(payload).hero, BoardCopy.departuresFailed)
+        XCTAssertEqual(BoardPresentation.departures(payload, now: payload.fetchedAt).hero, BoardCopy.departuresFailed)
     }
 
     func testKawasakiMergeKeepsOtherDays() async throws {
@@ -248,7 +248,23 @@ final class TimetableRegressionTests: XCTestCase {
         )
         XCTAssertTrue(loaded.trips.contains { $0.route == "溝21" && $0.time == "06:08" })
         XCTAssertFalse(loaded.trips.contains { $0.route == "溝23" })
-        XCTAssertEqual(loaded.note, "一部の路線の時刻表を取れませんでした")
+        let note = try XCTUnwrap(loaded.note)
+        XCTAssertTrue(note.hasPrefix("一部の路線の時刻表を取れませんでした"))
+        XCTAssertTrue(note.contains("溝23"))
+        XCTAssertTrue(note.contains("平日"))
+        XCTAssertTrue(note.contains("timeTableRouteTabFile.htm"))
+        XCTAssertTrue(note.contains("date=20261001"))
+        XCTAssertTrue(note.contains("name=mizo23.html"))
+        XCTAssertTrue(note.contains("ファイルなし"))
+        let failure = try XCTUnwrap(loaded.failures.first)
+        XCTAssertEqual(loaded.failures.count, 1)
+        XCTAssertEqual(failure.route, "溝23")
+        XCTAssertEqual(failure.day, "平日")
+        XCTAssertEqual(failure.status, "ファイルなし")
+        XCTAssertEqual(
+            failure.url,
+            "https://kcbn.bus-navigation.jp/wgsys/wgp/timeTableRouteTabFile.htm?date=20261001&name=mizo23.html"
+        )
     }
 
     func testShiftJISTableRejectsGarbage() {

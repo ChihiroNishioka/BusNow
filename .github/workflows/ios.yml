@@ -244,16 +244,14 @@ jobs:
       - name: BusNow Watch tests
         run: |
           set -o pipefail
+          # Ad-hoc signing is set on the Watch app and the complication target.
+          # A global CODE_SIGNING_ALLOWED=YES also signs the SwiftPM resource bundle, which codesign rejects.
           xcodebuild test \
             -project ios/BusNowApp/BusNow.xcodeproj \
             -scheme BusNowWatch \
             -destination "platform=watchOS Simulator,id=${{ steps.sim.outputs.watch }}" \
             -derivedDataPath ios/BusNowApp/DerivedDataWatch \
             -resultBundlePath "$GITHUB_WORKSPACE/WatchAppResults.xcresult" \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGNING_REQUIRED=YES \
-            CODE_SIGNING_ALLOWED=YES \
-            DEVELOPMENT_TEAM="" \
             | tee watch-xcodebuild.log
           APP="$(find ios/BusNowApp/DerivedDataWatch -path '*watchsimulator*' -name 'BusNowWatch.app' -type d | head -1)"
           echo "app=$APP"

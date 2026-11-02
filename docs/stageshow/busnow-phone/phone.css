@@ -1,0 +1,48 @@
+/* Phone placement from examples/phone-touch: one gutter from the top,
+   centered, off the bottom. Compact moves closer and keeps the screen large. */
+
+.bn-phone .ss-stage {
+  overflow: hidden;
+  background: #241c16;
+}
+
+.bn-phone .bn-device {
+  position: absolute;
+  top: 36px;
+  left: 50px;
+}
+
+.bn-phone .ss-stage[data-layout='compact'] .bn-device {
+  top: 16px;
+  left: 16px;
+}
+
+.bn-phone .bn-street {
+  min-height: 100%;
+  padding: 12px 12px 0;
+  --bn-title: 40px;
+  --bn-sub: 16px;
+  --bn-route: 20px;
+  --bn-dest: 15px;
+  --bn-chip: 16px;
+  --bn-num: 72px;
+  --bn-unit: 20px;
+  --bn-pad-top: 8px;
+  --bn-pad-x: 16px;
+  --bn-pad-left: 30px;
+}
+
+.bn-phone .bn-sheet {
+  min-height: 760px;
+  border-radius: 22px;
+}
+
+.bn-phone .bn-back {
+  font-size: 16px;
+}
+
+.bn-phone .bn-refresh {
+  min-width: 84px;
+  height: 36px;
+  font-size: 15px;
+}

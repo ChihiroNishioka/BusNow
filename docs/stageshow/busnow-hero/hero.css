@@ -1,0 +1,54 @@
+/* Fade crop, from examples/fade-crop. The mask sits on a wrapper with room
+   around the board so the top corners stay hard. Only the foot fades, and
+   only filler is under it. */
+
+.bn-hero .ss-stage {
+  overflow: hidden;
+  background: #241c16;
+  --bn-title: 52px;
+  --bn-sub: 18px;
+  --bn-route: 22px;
+  --bn-dest: 16px;
+  --bn-chip: 13px;
+  --bn-num: 84px;
+  --bn-unit: 22px;
+}
+
+.bn-hero .bn-mask {
+  position: absolute;
+  inset: 0;
+  padding: 72px 72px 0;
+  mask-image: linear-gradient(to bottom, #000 90%, transparent 100%);
+}
+
+.bn-hero .bn-street {
+  height: 760px;
+}
+
+.bn-hero .bn-sheet {
+  height: 760px;
+  border-radius: 28px 28px 0 0;
+}
+
+.bn-hero .ss-stage[data-layout='compact'] {
+  --bn-title: 36px;
+  --bn-sub: 15px;
+  --bn-route: 18px;
+  --bn-dest: 14px;
+  --bn-chip: 12px;
+  --bn-num: 64px;
+  --bn-unit: 18px;
+  --bn-pad-top: 16px;
+  --bn-pad-x: 18px;
+  --bn-pad-left: 32px;
+}
+
+.bn-hero .ss-stage[data-layout='compact'] .bn-mask {
+  padding: 28px 16px 0;
+  mask-image: linear-gradient(to bottom, #000 68%, transparent 98%);
+}
+
+.bn-hero .ss-stage[data-layout='compact'] .bn-street,
+.bn-hero .ss-stage[data-layout='compact'] .bn-sheet {
+  height: 640px;
+}

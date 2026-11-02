@@ -4,6 +4,18 @@
 
 世界観は [docs/CONCEPT.md](docs/CONCEPT.md) に書いてあります。見た目も画面の分かれ方も、そこから決めています。
 
+## 見た目
+
+この節の画像は架空の例です。停留所の名前、系統、会社名は、画像の中だけに出てきます。
+
+<img alt="さくら台発の看板。次のバスはあと4分。" src="docs/images/hero.png" width="960" />
+
+iPhone の幅では、先頭の分数が 5、4、3、2 と減ります。更新すると 5 に戻ります。止まって見る絵は、あと2分のところです。
+
+<img alt="さくら台発。あと2分。" src="docs/images/phone.png" width="400" />
+
+<img alt="あと何分が5から2へ減り、更新で5に戻る。" src="docs/images/phone-countdown.gif" width="400" />
+
 ## 画面
 
 - トップは「富士見台発」と「溝の口駅南口発」だけです。

@@ -1,0 +1,66 @@
+// iPhone-width countdown. Framing borrowed from examples/phone-touch:
+// the phone is pinned one gutter from the top, centered, and runs off the
+// bottom. The minute rolls with Count. The loop returns to 5 because the
+// board refreshes (the pill says 更新中 first).
+//
+// benjitaylor/skills stageshow (MIT), commit 802057409787133703c56001080169e347305572.
+// The kit is not vendored into BusNow. The phone chrome is the kit's Phone.
+
+import { Phone, Stage, type Act } from '../../kit'
+import { Board } from '../busnow-board/board'
+import '../busnow-board/fonts.css'
+import '../busnow-board/board.css'
+import './phone.css'
+
+type S = { minutes: number; refreshing: boolean }
+
+const START: S = { minutes: 5, refreshing: false }
+const POSTER: S = { minutes: 2, refreshing: false }
+
+async function script(a: Act<S>) {
+  await a.wait(1100)
+  a.mark('four')
+  a.put({ minutes: 4 })
+  await a.wait(1800)
+  a.mark('three')
+  a.put({ minutes: 3 })
+  await a.wait(1800)
+  a.mark('two')
+  a.put({ minutes: 2 })
+  await a.wait(2600)
+  a.mark('refresh')
+  a.put({ refreshing: true })
+  await a.wait(700)
+  a.put({ minutes: 5 })
+  await a.wait(1200)
+  a.put({ refreshing: false })
+  await a.wait(900)
+}
+
+export default function BusNowPhone() {
+  return (
+    <Stage<S>
+      width={400}
+      height={520}
+      compact={{ below: 400, width: 358, height: 520 }}
+      fidelity="realistic"
+      initial={START}
+      poster={POSTER}
+      script={script}
+      play="loop"
+      className="bn-phone"
+    >
+      {(s, _rect, layout) => (
+        <Phone
+          width={layout === 'compact' ? 326 : 300}
+          className="bn-device"
+          dark
+          wallpaper="#241c16"
+          time="9:41"
+        >
+          <Board minutes={s.minutes} refreshing={s.refreshing} rows={3} fillers={2} />
+        </Phone>
+      )}
+    </Stage>
+  )
+}

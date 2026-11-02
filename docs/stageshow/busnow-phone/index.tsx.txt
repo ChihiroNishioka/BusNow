@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment -- キットは同梱しない。型検査はこの写しを見ない。 */
-// @ts-nocheck
 // iPhone-width countdown. Framing borrowed from examples/phone-touch:
 // the phone is pinned one gutter from the top, centered, and runs off the
 // bottom. The minute rolls with Count. The loop returns to 5 because the

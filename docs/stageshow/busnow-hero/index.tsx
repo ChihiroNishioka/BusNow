@@ -1,0 +1,32 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment -- キットは同梱しない。型検査はこの写しを見ない。 */
+// @ts-nocheck
+// README hero still. Layout borrowed from examples/fade-crop: the board is
+// inset by one gutter on the top and sides, and only its foot fades, over
+// filler. The enamel, the stripe, and the big minute are BusNow's own screen.
+//
+// benjitaylor/skills stageshow (MIT), commit 802057409787133703c56001080169e347305572.
+// The kit is not vendored into BusNow.
+
+import { Stage } from '../../kit'
+import { Board } from '../busnow-board/board'
+import '../busnow-board/fonts.css'
+import '../busnow-board/board.css'
+import './hero.css'
+
+export default function BusNowHero() {
+  return (
+    <Stage
+      width={960}
+      height={640}
+      compact={{ below: 720, width: 358, height: 520 }}
+      fidelity="realistic"
+      className="bn-hero"
+    >
+      {(_state, _rect, layout) => (
+        <div className="bn-mask">
+          <Board minutes={4} rows={layout === 'compact' ? 2 : 3} fillers={2} note={layout !== 'compact'} />
+        </div>
+      )}
+    </Stage>
+  )
+}

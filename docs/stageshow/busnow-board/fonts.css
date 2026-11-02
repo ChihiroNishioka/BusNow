@@ -1,0 +1,3 @@
+/* 撮影時だけ Noto Sans JP（SIL Open Font License）の 500 / 700 / 900 を
+   BusNow Noto として読みました。woff2 は同梱していません。
+   フォントが無い環境では、board.css の後続（Noto Sans CJK JP、文泉驛微米黑）に落ちます。 */

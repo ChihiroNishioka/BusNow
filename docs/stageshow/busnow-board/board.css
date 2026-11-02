@@ -1,0 +1,210 @@
+/* Enamel board. Sizes come from the stage via --bn-* so the wide hero
+   and the phone screen can share one drawing. */
+
+.bn-street {
+  --bn-title: 48px;
+  --bn-sub: 18px;
+  --bn-route: 22px;
+  --bn-dest: 16px;
+  --bn-chip: 13px;
+  --bn-num: 76px;
+  --bn-unit: 22px;
+  --bn-pad-top: 18px;
+  --bn-pad-x: 28px;
+  --bn-pad-left: 40px;
+  font-family: "BusNow Noto", "Noto Sans CJK JP", "WenQuanYi Micro Hei", sans-serif;
+  color: #241c16;
+  background: #241c16;
+}
+
+.bn-sheet {
+  position: relative;
+  overflow: hidden;
+  min-height: 100%;
+  padding: var(--bn-pad-top) 0 0;
+  border-radius: 28px;
+  background: #f6efe2;
+  box-shadow: 0 12px 0 #1a140f;
+}
+
+.bn-sheet::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 14px;
+  background: #e25b2a;
+}
+
+.bn-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 var(--bn-pad-x) 0 var(--bn-pad-left);
+}
+
+.bn-back {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.bn-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  min-width: 88px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: #241c16;
+  color: #f6efe2;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.bn-head {
+  padding: 10px var(--bn-pad-x) 14px var(--bn-pad-left);
+}
+
+.bn-title {
+  display: block;
+  width: fit-content;
+  margin: 0;
+  font-size: var(--bn-title);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+}
+
+.bn-sub {
+  display: block;
+  width: fit-content;
+  margin: 6px 0 0;
+  color: #5c5146;
+  font-size: var(--bn-sub);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.bn-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.bn-bus {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px var(--bn-pad-x) 14px var(--bn-pad-left);
+}
+
+.bn-bus::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 14px;
+  height: 2px;
+  background: rgb(36 28 22 / 12%);
+}
+
+.bn-bus-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bn-chip {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: var(--bn-chip);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+}
+
+.bn-chip--akane {
+  background: #c1121f;
+}
+
+.bn-chip--midori {
+  background: #0e7a3d;
+}
+
+.bn-route {
+  font-size: var(--bn-route);
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.bn-dest {
+  color: #5c5146;
+  font-size: var(--bn-dest);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.bn-minute {
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  color: #241c16;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.06em;
+  line-height: 0.85;
+}
+
+.bn-num {
+  font-size: var(--bn-num);
+  line-height: 0.85;
+}
+
+.bn-minute .ss-count {
+  font-size: var(--bn-num);
+  line-height: 1;
+  letter-spacing: -0.06em;
+}
+
+.bn-unit,
+.bn-minute .ss-count__unit {
+  font-size: var(--bn-unit);
+  font-weight: 900;
+  line-height: 1;
+  margin-left: 2px;
+}
+
+.bn-note-row {
+  padding: 12px var(--bn-pad-x) 0 var(--bn-pad-left);
+}
+
+.bn-note {
+  display: block;
+  width: fit-content;
+  margin: 0;
+  color: #5c5146;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.bn-bus--fill {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.bn-bus--fill .bn-bus-main {
+  gap: 15px;
+}

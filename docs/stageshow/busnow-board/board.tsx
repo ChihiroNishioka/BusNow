@@ -1,0 +1,103 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment -- キットは同梱しない。型検査はこの写しを見ない。 */
+// @ts-nocheck
+// BusNow enamel board, drawn for README figures.
+// Source of the stage, the phone frame, Count, Roll, Bar, and Text:
+// benjitaylor/skills stageshow (MIT), commit 802057409787133703c56001080169e347305572.
+// The kit itself is not copied into BusNow. No app icons and no brand marks.
+//
+// Every place name, route, and operator below is fictional.
+
+import { Bar, Count, Roll, Text } from '../../kit'
+
+export type OperatorTone = 'akane' | 'midori'
+
+const OPERATORS: Record<OperatorTone, string> = {
+  akane: 'あかね交通',
+  midori: 'みどり交通',
+}
+
+type Row = {
+  operator: OperatorTone
+  route: string
+  dest: string
+  minutes?: number
+}
+
+const ROWS: Row[] = [
+  { operator: 'akane', route: '系統 A12', dest: '駅前ロータリー' },
+  { operator: 'midori', route: '系統 B3', dest: 'みなと橋', minutes: 9 },
+  { operator: 'akane', route: '系統 C7', dest: '丘の上', minutes: 18 },
+]
+
+const FILL = [
+  [72, 128, 84],
+  [64, 96, 70],
+  [80, 112, 60],
+]
+
+export function Board({
+  minutes,
+  refreshing = false,
+  rows = 3,
+  fillers = 1,
+  note = true,
+}: {
+  minutes: number
+  refreshing?: boolean
+  rows?: number
+  fillers?: number
+  note?: boolean
+}) {
+  return (
+    <div className="bn-street">
+      <div className="bn-sheet">
+        <div className="bn-top">
+          <Text className="bn-back">もどる</Text>
+          <div className="bn-refresh">
+            <Roll>{refreshing ? '更新中' : '更新'}</Roll>
+          </div>
+        </div>
+        <div className="bn-head">
+          <Text className="bn-title">さくら台発</Text>
+          <Text className="bn-sub">駅前ロータリー方面</Text>
+        </div>
+        <div className="bn-list">
+          {ROWS.slice(0, rows).map((row, index) => (
+            <div className="bn-bus" key={row.route}>
+              <div className="bn-bus-main">
+                <Text className={`bn-chip bn-chip--${row.operator}`}>{OPERATORS[row.operator]}</Text>
+                <Text className="bn-route">{row.route}</Text>
+                <Text className="bn-dest">{row.dest}</Text>
+              </div>
+              {index === 0 ? (
+                <span className="bn-minute">
+                  <Count value={minutes} format={(n) => `${n}分`} duration={640} />
+                </span>
+              ) : (
+                <span className="bn-minute">
+                  <span className="bn-num">{row.minutes}</span>
+                  <span className="bn-unit">分</span>
+                </span>
+              )}
+            </div>
+          ))}
+          {note ? (
+            <div className="bn-note-row">
+              <Text className="bn-note">30秒ごとに更新</Text>
+            </div>
+          ) : null}
+          {FILL.slice(0, fillers).map((widths, index) => (
+            <div className="bn-bus bn-bus--fill" key={index} aria-hidden>
+              <div className="bn-bus-main">
+                <Bar w={widths[0]} h={16} r={8} tone={2} />
+                <Bar w={widths[1]} h={14} r={4} tone={3} />
+                <Bar w={widths[2]} h={12} r={4} tone={2} />
+              </div>
+              <Bar w={54} h={28} r={6} tone={4} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}

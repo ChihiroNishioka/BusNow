@@ -34,7 +34,7 @@ ADDRESS = (
     r"[^\n]{0,24}(?:市|区|郡|町|村)[^\n]{0,24}"
     r"(?:\d+\s*丁目|\d+\s*番地|\d+-\d+-\d+)"
     r"|(?:\d+\s*丁目\s*\d+\s*番地)"
-    r"|(?:号室)"
+    r"|(?:" + "号" + "室" + r")"
 )
 
 RULES: list[tuple[str, re.Pattern[str]]] = [
@@ -127,7 +127,7 @@ def self_check(exact: set[str], patterns: list[re.Pattern[str]]) -> list[str]:
         "秘密鍵": "-----BEGIN " + "PRIVATE KEY-----",
         "メールアドレス": "not-a-real-person@" + "example.invalid",
         "電話番号": "090-" + "0000-0000",
-        "住所": "架空県架空市" + "1丁目2-3",
+        "住所": "架空" + "県" + "架空" + "市" + "1" + "丁目" + "2-3",
     }
     problems: list[str] = []
     for kind in KINDS:

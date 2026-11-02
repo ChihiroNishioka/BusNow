@@ -38,28 +38,38 @@ public struct DeparturePresentation: Equatable, Sendable {
 
 public enum BoardPresentation {
     public static let approachStaleAfter: TimeInterval = 5 * 60
+    /// A timetable row stays up for a minute after the printed time, then the next row takes its place.
+    public static let departureGrace: TimeInterval = 60
 
     public static func approach(_ payload: ApproachPayload, now: Date) -> ApproachPresentation {
         let age = now.timeIntervalSince(payload.fetchedAt)
         let basis = CountdownMath.basisCaption(payload.sources)
-        if age > approachStaleAfter {
+        if age >= approachStaleAfter {
             return ApproachPresentation(rows: [], hero: nil, freshnessNote: BoardCopy.staleHidden, basis: basis)
         }
         let freshness = age >= 60 ? BoardCopy.minutesAgo(Int(age / 60)) : nil
         let rows = visibleApproachRows(payload.buses, now: now)
         let bothFailed = !payload.sources.isEmpty && payload.sources.allSatisfy { !$0.ok }
         let hero: String?
-        if bothFailed || !rows.isEmpty {
-            hero = nil
-        } else {
+        if bothFailed && rows.isEmpty {
+            hero = BoardCopy.departuresFailed
+        } else if rows.isEmpty {
             hero = BoardCopy.approachEmpty
+        } else {
+            hero = nil
         }
         return ApproachPresentation(rows: rows, hero: hero, freshnessNote: freshness, basis: basis)
     }
 
-    public static func departures(_ payload: DeparturePayload) -> DeparturePresentation {
-        if payload.departures.isEmpty {
-            let bothFailed = !payload.sources.isEmpty && payload.sources.allSatisfy { !$0.ok }
+    public static func departures(_ payload: DeparturePayload, now: Date) -> DeparturePresentation {
+        let visible = payload.departures.filter { departure in
+            guard let when = departureDate(departure) else { return true }
+            return when.timeIntervalSince(now) > -departureGrace
+        }
+        if visible.isEmpty {
+            let bothFailed = payload.departures.isEmpty
+                && !payload.sources.isEmpty
+                && payload.sources.allSatisfy { !$0.ok }
             return DeparturePresentation(
                 departures: [],
                 finishedBanner: false,
@@ -67,10 +77,16 @@ public enum BoardPresentation {
             )
         }
         return DeparturePresentation(
-            departures: payload.departures,
+            departures: visible,
             finishedBanner: payload.serviceFinishedToday,
             hero: nil
         )
+    }
+
+    public static func departureDate(_ departure: Departure) -> Date? {
+        let parts = departure.time.split(separator: ":")
+        guard parts.count == 2, let hour = Int(parts[0]), let minute = Int(parts[1]) else { return nil }
+        return TokyoCalendar.date(ymd: departure.date, hour: hour, minute: minute)
     }
 
     public static func visibleApproachRows(_ buses: [ApproachBus], now: Date) -> [ApproachRow] {

@@ -1,0 +1,101 @@
+{
+  "buses" : [
+    {
+      "arrivesAt" : "2026-10-24T02:22:00.000Z",
+      "destination" : "溝口南行",
+      "id" : "tokyu-溝22-3-3分待ち-0",
+      "minutes" : 3,
+      "observedAt" : "2026-10-24T02:19:00.000Z",
+      "operator" : "東急バス",
+      "route" : "溝22",
+      "status" : "3分待ち"
+    },
+    {
+      "arrivesAt" : "2026-10-24T02:24:00.000Z",
+      "destination" : "溝口駅南口行き",
+      "id" : "kawasaki-溝23-5-0",
+      "minutes" : 5,
+      "observedAt" : "2026-10-24T02:19:00.000Z",
+      "operator" : "川崎市バス",
+      "route" : "溝23",
+      "status" : "約5分で発車"
+    },
+    {
+      "arrivesAt" : "2026-10-24T02:26:00.000Z",
+      "destination" : "溝口駅南口行き",
+      "id" : "kawasaki-溝25-7-1",
+      "minutes" : 7,
+      "observedAt" : "2026-10-24T02:19:00.000Z",
+      "operator" : "川崎市バス",
+      "route" : "溝25",
+      "status" : "約7分で発車"
+    },
+    {
+      "arrivesAt" : "2026-10-24T02:30:00.000Z",
+      "destination" : "溝口駅南口行き",
+      "id" : "kawasaki-溝21-11-2",
+      "minutes" : 11,
+      "observedAt" : "2026-10-24T02:19:00.000Z",
+      "operator" : "川崎市バス",
+      "route" : "溝21",
+      "status" : "約11分で発車"
+    },
+    {
+      "arrivesAt" : "2026-10-24T02:31:00.000Z",
+      "destination" : "溝口駅南口行き",
+      "id" : "kawasaki-溝23-12-3",
+      "minutes" : 12,
+      "observedAt" : "2026-10-24T02:19:00.000Z",
+      "operator" : "川崎市バス",
+      "route" : "溝23",
+      "status" : "約12分で発車"
+    },
+    {
+      "arrivesAt" : "2026-10-24T02:35:00.000Z",
+      "destination" : "溝口南行",
+      "id" : "tokyu-溝22-16-16分待ち-1",
+      "minutes" : 16,
+      "observedAt" : "2026-10-24T02:19:00.000Z",
+      "operator" : "東急バス",
+      "route" : "溝22",
+      "status" : "16分待ち"
+    },
+    {
+      "arrivesAt" : "2026-10-24T02:44:00.000Z",
+      "destination" : "溝口南行",
+      "id" : "tokyu-溝22-25-25分待ち-2",
+      "minutes" : 25,
+      "observedAt" : "2026-10-24T02:19:00.000Z",
+      "operator" : "東急バス",
+      "route" : "溝22",
+      "status" : "25分待ち"
+    },
+    {
+      "arrivesAt" : "2026-10-24T02:55:00.000Z",
+      "destination" : "溝口駅南口行き",
+      "id" : "kawasaki-溝25-36-4",
+      "minutes" : 36,
+      "observedAt" : "2026-10-24T02:19:00.000Z",
+      "operator" : "川崎市バス",
+      "route" : "溝25",
+      "status" : "約36分で発車"
+    }
+  ],
+  "fetchedAt" : "2026-10-24T02:19:57.748Z",
+  "sources" : [
+    {
+      "observedAt" : "2026-10-24T02:19:00.000Z",
+      "ok" : true,
+      "operator" : "東急バス",
+      "updatedAt" : "11:19"
+    },
+    {
+      "observedAt" : "2026-10-24T02:19:00.000Z",
+      "ok" : true,
+      "operator" : "川崎市バス",
+      "updatedAt" : "11:19"
+    }
+  ],
+  "stop" : "富士見台",
+  "toward" : "溝の口"
+}

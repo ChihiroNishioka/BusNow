@@ -46,6 +46,9 @@ public struct HTTPClient: Sendable {
 public enum HTTP {
     public static let userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
     public static let requestTimeout: TimeInterval = 15
+    /// Widget and background refresh get a few seconds. These limits are a budget, not a measured Watch timeout.
+    public static let backgroundRequestTimeout: TimeInterval = 8
+    public static let backgroundResourceTimeout: TimeInterval = 10
 
     public static func fetchText(_ client: HTTPClient, _ url: URL) async throws -> String {
         let response = try await client.fetch(HTTPRequest(url: url))
@@ -105,9 +108,13 @@ public enum HTTP {
         return urlRequest
     }
 
-    public static func sessionClient(_ session: URLSession = configuredSession()) -> HTTPClient {
+    public static func sessionClient(
+        _ session: URLSession = configuredSession(),
+        requestTimeout: TimeInterval = HTTP.requestTimeout
+    ) -> HTTPClient {
         HTTPClient { request in
-            let urlRequest = urlRequest(for: request)
+            var urlRequest = urlRequest(for: request)
+            urlRequest.timeoutInterval = requestTimeout
             do {
                 let (data, response) = try await session.data(for: urlRequest)
                 guard let http = response as? HTTPURLResponse else {
@@ -134,6 +141,18 @@ public enum HTTP {
                 throw BusTransportError(BoardCopy.offline)
             }
         }
+    }
+
+    public static func backgroundClient() -> HTTPClient {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.timeoutIntervalForRequest = backgroundRequestTimeout
+        configuration.timeoutIntervalForResource = backgroundResourceTimeout
+        configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
+        configuration.httpAdditionalHeaders = [
+            "User-Agent": userAgent,
+            "Accept-Language": "ja,en;q=0.8",
+        ]
+        return sessionClient(URLSession(configuration: configuration), requestTimeout: backgroundRequestTimeout)
     }
 
     public static func configuredSession() -> URLSession {

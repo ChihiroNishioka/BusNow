@@ -31,12 +31,18 @@ if ! xcrun simctl get_app_container "$UDID" app.busnow.ios >/dev/null 2>&1; then
     xcrun simctl install "$UDID" "$APP_PATH"
   fi
 fi
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+STATUS_TIME="10:30"
+if [[ -f "$ROOT/BusNowApp/RecordedFixtures/SOURCE.txt" ]]; then
+  STATUS_TIME="$(grep -E '^statusBar=' "$ROOT/BusNowApp/RecordedFixtures/SOURCE.txt" | head -1 | cut -d= -f2-)"
+  STATUS_TIME="${STATUS_TIME:-10:30}"
+fi
 xcrun simctl status_bar "$UDID" override \
-  --time "10:30" \
+  --time "$STATUS_TIME" \
   --batteryState charged \
   --batteryLevel 100 \
   --cellularMode active \
-  --wifiBars 3 || true
+  --wifiBars 3
 
 capture() {
   local name="$1"
@@ -49,7 +55,8 @@ capture() {
 }
 
 capture home -busnow-scenario home
-capture approach -busnow-scenario approach -busnow-start approach
-capture departures -busnow-scenario departures -busnow-start departures
-capture finished -busnow-scenario departures-finished -busnow-start departures
+capture approach -busnow-scenario recorded-approach -busnow-start approach
+capture departures -busnow-scenario recorded-departures -busnow-start departures
+capture departures-finished -busnow-scenario departures-finished -busnow-start departures
 capture approach-partial -busnow-scenario approach-partial -busnow-start approach
+cp "$ROOT/BusNowApp/RecordedFixtures/SOURCE.txt" "$OUT/SOURCE.txt"

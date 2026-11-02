@@ -123,3 +123,187 @@ jobs:
           name: ios-screenshots
           if-no-files-found: error
           path: ${{ runner.temp }}/ios-screenshots
+
+  watch:
+    name: watchOS build and test
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode
+        run: xcodebuild -version
+
+      - name: Ensure a watchOS simulator runtime
+        run: |
+          set +e
+          python3 << 'PY'
+          import json, subprocess, sys
+          raw = subprocess.check_output(["xcrun", "simctl", "list", "runtimes", "-j"])
+          data = json.loads(raw)
+          have = [r for r in data.get("runtimes", []) if "watchOS" in r.get("name", "") or "watchOS" in r.get("identifier", "")]
+          print("watch runtimes", [(r.get("name"), r.get("identifier"), r.get("isAvailable")) for r in have])
+          if not any(r.get("isAvailable", True) for r in have):
+              sys.exit(2)
+          PY
+          code=$?
+          set -e
+          if [ "$code" -eq 2 ]; then
+            xcodebuild -downloadPlatform watchOS
+          elif [ "$code" -ne 0 ]; then
+            exit "$code"
+          fi
+
+      - name: Pick iPhone and Watch simulators
+        id: sim
+        run: |
+          python3 << 'PY'
+          import json, os, subprocess
+          devices = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "-j"]))
+          devicetypes = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "devicetypes", "-j"]))
+          runtimes = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "runtimes", "-j"]))
+
+          def pick(kind, preferred):
+              found = []
+              for runtime, rows in devices.get("devices", {}).items():
+                  if kind not in runtime:
+                      continue
+                  for device in rows:
+                      if device.get("isAvailable") is False:
+                          continue
+                      name = device.get("name", "")
+                      if kind == "iOS" and "iPhone" not in name:
+                          continue
+                      if kind == "watchOS" and "Watch" not in name:
+                          continue
+                      found.append((name, device["udid"], runtime))
+              if not found:
+                  return None
+              def rank(item):
+                  name, _, runtime = item
+                  pref = next((i for i, needle in enumerate(preferred) if needle in name), 50)
+                  return (pref, runtime, name)
+              found.sort(key=rank)
+              return found[0]
+
+          iphone = pick("iOS", ["iPhone 16", "iPhone 17", "iPhone 15"])
+          watch = pick("watchOS", ["Apple Watch Series 11", "Apple Watch Series 10", "Apple Watch Series 9", "Apple Watch Ultra", "Apple Watch SE"])
+          if iphone is None:
+              raise SystemExit("no available iPhone simulator")
+          if watch is None:
+              watch_runtimes = [r for r in runtimes.get("runtimes", []) if "watchOS" in r.get("identifier", "") and r.get("isAvailable", True)]
+              if not watch_runtimes:
+                  raise SystemExit("no watchOS runtime")
+              runtime = watch_runtimes[-1]
+              types = [t for t in devicetypes.get("devicetypes", []) if "Watch" in t.get("name", "")]
+              preferred = ["Series 11", "Series 10", "Series 9", "Ultra", "SE"]
+              types.sort(key=lambda t: next((i for i, needle in enumerate(preferred) if needle in t.get("name", "")), 50))
+              if not types:
+                  raise SystemExit("no watch device type")
+              name = "BusNow Watch"
+              udid = subprocess.check_output(["xcrun", "simctl", "create", name, types[0]["identifier"], runtime["identifier"]], text=True).strip()
+              watch = (name, udid, runtime["identifier"])
+              print("created", watch)
+          print("iphone", iphone)
+          print("watch", watch)
+          subprocess.call(["xcrun", "simctl", "pair", watch[1], iphone[1]])
+          subprocess.call(["xcrun", "simctl", "boot", iphone[1]])
+          subprocess.call(["xcrun", "simctl", "boot", watch[1]])
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as handle:
+              handle.write(f"iphone={iphone[1]}\n")
+              handle.write(f"watch={watch[1]}\n")
+              handle.write(f"watch_name={watch[0]}\n")
+          PY
+
+      - name: Install the iPhone companion
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project ios/BusNowApp/BusNow.xcodeproj \
+            -scheme BusNow \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.iphone }}" \
+            -derivedDataPath ios/BusNowApp/DerivedDataCompanion \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee companion-xcodebuild.log
+          APP="$(find ios/BusNowApp/DerivedDataCompanion -path '*iphonesimulator*' -name 'BusNow.app' -type d | head -1)"
+          echo "companion=$APP"
+          xcrun simctl boot "${{ steps.sim.outputs.iphone }}" || true
+          xcrun simctl install "${{ steps.sim.outputs.iphone }}" "$APP"
+
+      - name: BusNowCore on watchOS simulator
+        working-directory: ios
+        run: |
+          xcodebuild test \
+            -scheme BusNowCore \
+            -destination "platform=watchOS Simulator,id=${{ steps.sim.outputs.watch }}" \
+            -resultBundlePath "$GITHUB_WORKSPACE/WatchCoreResults.xcresult" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: BusNow Watch tests
+        run: |
+          set -o pipefail
+          # The Watch targets are ad-hoc signed in the project. CI still passes
+          # CODE_SIGNING_ALLOWED=NO so Xcode does not try to sign the SwiftPM
+          # resource bundle (codesign rejects that bundle). The appex is embedded
+          # by the copy phase, then signed here with the App Group entitlement.
+          xcodebuild build-for-testing \
+            -project ios/BusNowApp/BusNow.xcodeproj \
+            -scheme BusNowWatch \
+            -destination "platform=watchOS Simulator,id=${{ steps.sim.outputs.watch }}" \
+            -derivedDataPath ios/BusNowApp/DerivedDataWatch \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee watch-xcodebuild.log
+          APP="$(find ios/BusNowApp/DerivedDataWatch -path '*watchsimulator*' -name 'BusNowWatch.app' -type d | head -1)"
+          echo "app=$APP"
+          test -d "$APP/PlugIns/BusNowComplication.appex"
+          if [[ -d "$APP/PlugIns/BusNowWatchTests.xctest" ]]; then
+            codesign --force --sign - --timestamp=none "$APP/PlugIns/BusNowWatchTests.xctest"
+          fi
+          codesign --force --sign - --timestamp=none \
+            --entitlements ios/BusNowApp/BusNowComplication/BusNowComplication.entitlements \
+            "$APP/PlugIns/BusNowComplication.appex"
+          codesign --force --sign - --timestamp=none \
+            --entitlements ios/BusNowApp/BusNowWatch/BusNowWatch.entitlements \
+            "$APP"
+          codesign -d --entitlements :- "$APP" | grep -q "group.app.busnow.ios"
+          codesign -d --entitlements :- "$APP/PlugIns/BusNowComplication.appex" | grep -q "group.app.busnow.ios"
+          xcodebuild test-without-building \
+            -project ios/BusNowApp/BusNow.xcodeproj \
+            -scheme BusNowWatch \
+            -destination "platform=watchOS Simulator,id=${{ steps.sim.outputs.watch }}" \
+            -derivedDataPath ios/BusNowApp/DerivedDataWatch \
+            -resultBundlePath "$GITHUB_WORKSPACE/WatchAppResults.xcresult" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee -a watch-xcodebuild.log
+
+      - name: Watch screenshots
+        if: success()
+        run: |
+          APP="$(find ios/BusNowApp/DerivedDataWatch -path '*watchsimulator*' -name 'BusNowWatch.app' -type d | head -1)"
+          echo "app=$APP"
+          bash ios/scripts/capture-watch-screenshots.sh "$APP" "$RUNNER_TEMP/watch-screenshots" "${{ steps.sim.outputs.watch }}"
+
+      - name: Upload watch test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: watch-xcresult
+          if-no-files-found: warn
+          path: |
+            WatchCoreResults.xcresult
+            WatchAppResults.xcresult
+            watch-xcodebuild.log
+
+      - name: Upload watch screenshots
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: watch-screenshots
+          if-no-files-found: error
+          path: ${{ runner.temp }}/watch-screenshots
